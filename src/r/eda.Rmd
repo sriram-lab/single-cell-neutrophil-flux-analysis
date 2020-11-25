@@ -1,0 +1,69 @@
+---
+title: "Immune cell exploratory data analysis"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+This analysis contains 3 time points: :
+
+  1. 7 days: Pre-metastatic niche - tumor cells have not arrived
+  2. 14 days: Metastatic niche - tumor cells arrived but no proliferation
+  3. 21 days: Metabstatic niche - secondary tumors in lung 
+
+**The overall hypothesis** is that immune cells at the early metastatic niche have an anti-tumor phenotype, while immune cells have a pro-metastatic niche in the late-stage.
+
+I will be testing the following hypotheses that are reported across multiple studies using COBRA:
+  * Glutathione metabolism will go down from the early stage to late stage metastatic niche.
+  * Glycolysis will go up from the early stage to late stage metastatic niche.
+  * OXPHOS goes down from early stage to late stage metastatic niche.
+  
+These are the known hypotheses that can support what already been known. Some additional questions I can attempt to answer include:
+  * What are distinct metabolic flux alterations that occur in different immune cells?
+
+# Exploratory data analysis
+First, we'll load the libraries and dataset we'll need to analyze the data.
+
+```{r}
+# Load the libraries
+library(mgcv)
+library(splines)
+library(Seurat)
+library(dplyr)
+library(tidyr)
+library(viridis)
+library(matrixStats)
+library(UpSetR)
+library(reshape2)
+library(ggplot2)
+library(phateR)
+
+# Load the data
+load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+```
+
+Now, let's get a high level overview of the data using tSNE and UMAP.
+```{r}
+# Sophia already ran tSNE
+DimPlot(lung, reduction="tsne")
+
+# Let's also run UMAP to see if we get better separation
+#lung = RunUMAP(lung, dims=1:50)
+#save(lung, file="D:/Data/scRNASeq/shea/lung.robj")
+DimPlot(lung, reduction="umap")
+```
+Now I see why they used the t-SNE method for dimension reduction rather than the UMAP representation. 
+
+# Differential expression analysis
+## Aggregated differential expression analysis
+I would need to perform differential expression analysis across populations of cells, using each time point compared to the previous time point. That is what they did in figure 2D.
+
+```{r}
+
+```
+
+## Individual cell differential expression analysis
+

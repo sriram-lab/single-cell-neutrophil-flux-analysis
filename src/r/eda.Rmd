@@ -45,7 +45,7 @@ library(phateR)
 load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 ```
 
-Now, let's get a high level overview of the data using tSNE and UMAP.
+Now, let's get a high level overview of the data using t-SNE and UMAP.
 ```{r}
 # Sophia already ran tSNE
 DimPlot(lung, reduction="tsne")
@@ -62,8 +62,36 @@ Now I see why they used the t-SNE method for dimension reduction rather than the
 I would need to perform differential expression analysis across populations of cells, using each time point compared to the previous time point. That is what they did in figure 2D.
 
 ```{r}
+celltype.list = SplitObject(lung, split.by="CellType")
+celltypes = c("Stroma", "Alveolar Macrophages", "Macrophages", "Monocytes",
+              "Pneumocytes", "B cells", "Granulocytes", "T cells",
+              "Dendritic Cells", "Neutrophils", "NK cells", "Endothelial",
+              "HSCs")
 
+# Differential expression for different time points across different cell types
+t0007_de = list()
+t0714_de = list()
+t1421_de = list()
+for(i in 1:length(celltype.list)){
+  tissuedata = SetIdent(celltype.list[[i]], value="Time")
+  t0007_de[[i]] = FindMarkers(tissuedata, ident.1=0, indent.2=7)
+  t0714_de[[i]] = FindMarkers(tissuedata, ident.1=7, indent.2=14)
+  t1421_de[[i]] = FindMarkers(tissuedata, ident.1=14, indent.2=21)
+}
+
+cnt_mat = matrix(, nrow=13, ncol=4)
+for(i in 1:length(celltype.list)){
+  cnt_mat[i, 1] = sum(celltype.list[[i]]@meta.data$Time == 0)
+  cnt_mat[i, 2] = sum(celltype.list[[i]]@meta.data$Time == 7)
+  cnt_mat[i, 3] = sum(celltype.list[[i]]@meta.data$Time == 14)
+  cnt_mat[i, 4] = sum(celltype.list[[i]]@meta.data$Time == 21)
+}
+
+```
+Now we can save the data.
+
+```{r}
+save.image(file="D:/Data/scRNASeq/shea/lung_agg_de.RData")
 ```
 
 ## Individual cell differential expression analysis
-

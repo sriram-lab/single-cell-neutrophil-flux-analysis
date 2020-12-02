@@ -42,18 +42,52 @@ library(ggplot2)
 library(phateR)
 
 # Load the data
-load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+# Dell
+#load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# ACLX
+load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 ```
 
+## Data Summary
+
+First, let's get the gene names
+```{r}
+lung_data = GetAssayData(lung, assay="RNA", slot='data')
+gene_symbol = lung_data@Dimnames[[1]]
+```
+
+The code block below is for summarizing the dataset. Specifically, the for loop below counts the number of cells belonging to each cell type and time point. 
+```{r}
+# Creating the count matrix
+cnt_mat = matrix(, nrow=13, ncol=4)
+for(i in 1:length(celltype.list)){
+  cnt_mat[i, 1] = sum(celltype.list[[i]]@meta.data$Time == 0)
+  cnt_mat[i, 2] = sum(celltype.list[[i]]@meta.data$Time == 7)
+  cnt_mat[i, 3] = sum(celltype.list[[i]]@meta.data$Time == 14)
+  cnt_mat[i, 4] = sum(celltype.list[[i]]@meta.data$Time == 21)
+}
+```
+
+## Data visualization from dimension reduction
 Now, let's get a high level overview of the data using t-SNE and UMAP.
 ```{r}
 # Sophia already ran tSNE
 DimPlot(lung, reduction="tsne")
 
 # Let's also run UMAP to see if we get better separation
-#lung = RunUMAP(lung, dims=1:50)
+lung = RunUMAP(lung, dims=1:50)
+DimPlot(lung, reduction='umap')
+```
+
+If this analysis takes awhile, we can save the data objects.
+```{r}
+# Save the file object
+# Dell
 #save(lung, file="D:/Data/scRNASeq/shea/lung.robj")
-DimPlot(lung, reduction="umap")
+
+# ACLX
+#save(lung, file="C:/Users/scott/Data/scRNASeq/shea/lung.robj")
 ```
 Now I see why they used the t-SNE method for dimension reduction rather than the UMAP representation. 
 
@@ -74,24 +108,123 @@ t0714_de = list()
 t1421_de = list()
 for(i in 1:length(celltype.list)){
   tissuedata = SetIdent(celltype.list[[i]], value="Time")
-  t0007_de[[i]] = FindMarkers(tissuedata, ident.1=0, indent.2=7)
-  t0714_de[[i]] = FindMarkers(tissuedata, ident.1=7, indent.2=14)
-  t1421_de[[i]] = FindMarkers(tissuedata, ident.1=14, indent.2=21)
+  t0007_de[[i]] = FindMarkers(tissuedata, 
+                              ident.1=0, indent.2=7,
+                              min.cells.feature = 2, min.cells.group = 2)
+  
+  t0714_de[[i]] = FindMarkers(tissuedata, 
+                              ident.1=7, indent.2=14,
+                              min.cells.feature = 2, min.cells.group = 2)
+  t1421_de[[i]] = FindMarkers(tissuedata, 
+                              ident.1=14, indent.2=21,
+                              min.cells.feature = 2, min.cells.group = 2)
 }
-
-cnt_mat = matrix(, nrow=13, ncol=4)
-for(i in 1:length(celltype.list)){
-  cnt_mat[i, 1] = sum(celltype.list[[i]]@meta.data$Time == 0)
-  cnt_mat[i, 2] = sum(celltype.list[[i]]@meta.data$Time == 7)
-  cnt_mat[i, 3] = sum(celltype.list[[i]]@meta.data$Time == 14)
-  cnt_mat[i, 4] = sum(celltype.list[[i]]@meta.data$Time == 21)
-}
-
 ```
-Now we can save the data.
 
+### Map mouse genes to human ortholog gene symbols
+
+First, let's create a function `convertMouseGeneList`, which takes a dataframe and maps mouse gene symbols to human orthologs.
 ```{r}
-save.image(file="D:/Data/scRNASeq/shea/lung_agg_de.RData")
+#BiocManager::install("biomaRt")
+library(biomaRt)
+human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
+convertMouseGeneList = function(gene_obj, db1, db2){
+  orthologs = getLDS(attributes=c("mgi_symbol"), filters="mgi_symbol", 
+                   values=rownames(gene_obj), mart=db2, 
+                   attributesL=c("hgnc_symbol", "entrezgene_id"), martL=db1, 
+                   uniqueRows=TRUE)
+  mapped_gene_obj = merge(orthologs, gene_obj, 
+                          by.x='MGI.symbol', by.y='row.names')
+  return(mapped_gene_obj)
+}
+```
+
+This code block takes those lists and maps the mouse to human orthologs using biomaRt.
+```{r}
+for(i in 1:length(celltype.list)){
+  t0007_de[[i]] = convertMouseGeneList(t0007_de[[i]], human, mouse)
+  t0714_de[[i]] = convertMouseGeneList(t0714_de[[i]], human, mouse)
+  t1421_de[[i]] = convertMouseGeneList(t1421_de[[i]], human, mouse)
+}
+```
+
+### Get metabolic genes
+
+First, let's read in metabolic genes from RECON1. We'll be using those 
+```{r}
+recon1_map = read.csv("C:/Users/scott/Data/Mappings/GeneIDs/GeneSymbol_to_entrez.csv")
+recon1_map = unique(recon1_map[, 1:2])
+```
+
+This function maps metabolic genes from the scRNASeq dataset. 
+```{r}
+getMetabolicGenes = function(df, map){
+  mapped_df = merge(df, map, 
+                    by.x='NCBI.gene..formerly.Entrezgene..ID', by.y='X_id')
+  return(mapped_df)
+}
+```
+
+This code block gets metabolic genes that intersect with the RECON1 reconstruction.
+```{r}
+mapped_0007 = list()
+mapped_0714 = list()
+mapped_1421 = list()
+for(i in 1:length(celltype.list)){
+  mapped_0007[[i]] = getMetabolicGenes(t0007_de[[i]], recon1_map)
+  mapped_0714[[i]] = getMetabolicGenes(t0714_de[[i]], recon1_map)
+  mapped_1421[[i]] = getMetabolicGenes(t1421_de[[i]], recon1_map)
+}
+```
+
+### Get summary of dataset
+Now it would be interesting to get a high level overview of the number of up- and down-regulated metabolic genes from this analysis for each time point. Let's set the significance threshold to be 0.05.
+
+First, let's get all significant metabolic genes. the data is still nested into a list.
+```{r}
+sig_0007 = list()
+sig_0714 = list()
+sig_1421 = list()
+for(i in 1:length(celltype.list)){
+  tmp1 = mapped_0007[[i]]
+  tmp2 = mapped_0714[[i]]
+  tmp3 = mapped_1421[[i]]
+  
+  sig_0007[[i]] = tmp1[tmp1[, 'p_val_adj'] < 0.05, ]
+  sig_0714[[i]] = tmp2[tmp2[, 'p_val_adj'] < 0.05, ]
+  sig_1421[[i]] = tmp3[tmp3[, 'p_val_adj'] < 0.05, ]
+}
+```
+
+Now, we'll un-nest the list by concatenating these dataframes.
+```{r}
+df_0007 = list()
+df_0714 = list()
+df_1421 = list()
+
+for(i in 1:length(celltype.list)){
+  tmp1 = sig_0007[[i]]
+  tmp2 = sig_0714[[i]]
+  tmp3 = sig_1421[[i]]
+  
+  name1 = rep(celltypes[i], nrow(tmp1))
+  name2 = rep(celltypes[i], nrow(tmp2))
+  name3 = rep(celltypes[i], nrow(tmp3))
+  
+  tmp1[, "Tisssue"] = name1
+  tmp2[, "Tisssue"] = name2
+  tmp3[, "Tisssue"] = name3
+  
+  df_0007[[i]] = tmp1
+  df_0714[[i]] = tmp2
+  df_1421[[i]] = tmp3
+  
+}
+
+final_df_0007 = dplyr::bind_rows(df_0007)
+final_df_0714 = dplyr::bind_rows(df_0714)
+final_df_1421 = dplyr::bind_rows(df_1421)
 ```
 
 ## Individual cell differential expression analysis

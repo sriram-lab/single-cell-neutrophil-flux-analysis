@@ -29,24 +29,31 @@ First, we'll load the libraries and dataset we'll need to analyze the data.
 
 ```{r}
 # Load the libraries
+install.packages(c("mgcv", "splines", "Seurat", "tidyverse", 
+                   "viridis", "matrixStats", "UpSetR", 
+                   "reshape2", "ggplot2", "phateR"))
 library(mgcv)
 library(splines)
 library(Seurat)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(viridis)
 library(matrixStats)
 library(UpSetR)
 library(reshape2)
 library(ggplot2)
 library(phateR)
+library(reticulate)
 
 # Load the data
 # Dell
 #load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 
 # ACLX
-load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# Linux
+load("~/Data/scRNASeq/shea/lung.Robj")
+unique(neutrophils@meta.data[["CellType"]])
 ```
 
 ## Data Summary
@@ -74,12 +81,68 @@ Now, let's get a high level overview of the data using t-SNE and UMAP.
 ```{r}
 # Sophia already ran tSNE
 DimPlot(lung, reduction="tsne")
+```
 
+```{r}
 # Let's also run UMAP to see if we get better separation
 lung = RunUMAP(lung, dims=1:50)
 DimPlot(lung, reduction='umap')
 ```
+```{r}
+# Separate by cell types
+celltype.list = SplitObject(lung, split.by="CellType")
+neutrophils = celltype.list$Neutrophils
 
+```
+
+```{r}
+# Visualize PHATE
+neutrophil_data = GetAssayData(neutrophils)
+neutrophil_data = as.data.frame(neutrophil_data)
+neutrophil_pca = as.data.frame(prcomp(neutrophil_data)$x)
+neutrophil_phate = phate(neutrophil_pca)
+neutrophil_magic = magic(neutrophil_phate)
+
+ggplot(neutrophil_phate) +
+  geom_point(aes(x=PC1, y=PC2, color=neutrophil_phate$result$Ifitm1)) +
+  scale_color_viridis(option="B") +
+  labs(color="Ifitm1")
+```
+
+```{r}
+# Visualize UMAP
+neutrophils = RunUMAP(neutrophils, 
+                      dims=1:50)
+expt = neutrophils@meta.data["Experiment"]
+expt = as.character(expt$Experiment)
+neutrophils = SetIdent(obj=neutrophils, 
+                       value=expt)
+
+DimPlot(neutrophils, 
+        reduction='umap',
+        pt.size=5, 
+        dims = c(1,2)) + 
+  labs(x="UMAP 1", y="UMAP 2", title="Neutrophil subpopulations") + 
+  ggplot2::scale_color_manual(values = alpha(c("#FC7753", "#403D58", "#DBD56E"), 0.7)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+
+```{r}
+# Visualize T-SNE
+neutrophils = RunTSNE(object=neutrophils)
+DimPlot(neutrophils, reduction='tsne')
+```
+# Visualize PCA
+DimPlot(neutrophils, reduction='pca')
+```
 If this analysis takes awhile, we can save the data objects.
 ```{r}
 # Save the file object

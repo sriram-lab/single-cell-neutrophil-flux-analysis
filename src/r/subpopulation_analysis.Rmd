@@ -1,0 +1,302 @@
+---
+title: "Immune cell dimension reduction"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+**This analysis contains 3 time points:**
+
+  1. *Day 7*:  Pre-metastatic niche - tumor cells have not arrived
+  2. *Day 14*: Metastatic niche - tumor cells arrived but no proliferation
+  3. *Day 21*: Metabstatic niche - secondary tumors in lung 
+
+**The driving questions are the following:**
+
+  1. Do neutrophils adopt an immunosuppressive or immunoevasive phenotype driven by rewired metabolism?
+  2. How do other immune cell types, such as NK cell and T-cell, change their metabolic pathways to facilitate immunosuppression and evasion?
+  3. Can we infer a regulatory relationship between neutrophil and T-cells via altered metabolic processes?
+
+# 1. Load libraries and data
+First, we'll load the libraries and dataset we'll need to analyze the data.
+
+```{r}
+# Load the libraries
+#install.packages(c("mgcv", "splines", "Seurat", "tidyverse", 
+#                   "viridis", "matrixStats", "UpSetR", 
+#                   "reshape2", "ggplot2", "phateR"))
+library(mgcv)
+library(splines)
+library(Seurat)
+library(tidyverse)
+library(viridis)
+library(matrixStats)
+library(UpSetR)
+library(reshape2)
+library(ggplot2)
+library(phateR)
+library(reticulate)
+
+# Load the data
+# Dell
+#load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# ACLX
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# Linux
+#load("~/Data/scRNASeq/shea/lung.Robj")
+#unique(neutrophils@meta.data[["CellType"]])
+```
+
+# 2. Get a summary of counts for each cell type in data set.
+
+First, let's get the gene names
+```{r}
+lung_data = GetAssayData(lung, assay="RNA", slot='data')
+gene_symbol = lung_data@Dimnames[[1]]
+```
+
+The code block below is for summarizing the dataset. Specifically, the for loop below counts the number of cells belonging to each cell type and time point. 
+```{r}
+# Creating the count matrix
+cnt_mat = matrix(, nrow=13, ncol=4)
+for(i in 1:length(celltype.list)){
+  cnt_mat[i, 1] = sum(celltype.list[[i]]@meta.data$Time == 0)
+  cnt_mat[i, 2] = sum(celltype.list[[i]]@meta.data$Time == 7)
+  cnt_mat[i, 3] = sum(celltype.list[[i]]@meta.data$Time == 14)
+  cnt_mat[i, 4] = sum(celltype.list[[i]]@meta.data$Time == 21)
+}
+```
+
+#3. Data visualization from dimension reduction
+Now, let's get a high level overview of the data using t-SNE and UMAP.
+
+## T-SNE compression
+```{r}
+# Sophia already ran tSNE
+DimPlot(lung, 
+        reduction="tsne",
+        pt.size=2) + 
+  labs(x="TSNE 1", y="TSNE 2", title="All cell T-SNE compression") +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+## UMAP compression
+```{r}
+# Let's also run UMAP to see if we get better separation
+lung = RunUMAP(lung, dims=1:50, k.nn=13)
+DimPlot(lung, 
+        reduction='umap', 
+        pt.size=2) + 
+  labs(x="UMAP 1", y="UMAP 2", title="All cell UMAP compression") +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+# 4. Cell type specific analysis
+The goal of this code block is to see if there are different populations of cells across time. I created 4 different seurat objects to study in more depth:
+  * Neutrophils
+  * NK cells
+  * T-Cells
+  * Granulocytes
+  
+```{r}
+# Separate by cell types
+celltype.list = SplitObject(lung, split.by="CellType")
+
+# Create separate Seurat objects to visualize.
+neutrophils   = celltype.list$Neutrophils
+nk            = celltype.list$`NK Cells`
+tcell         = celltype.list$`T Cells`
+gran          = celltype.list$Granulocytes
+```
+
+# 5. Visualize data using PHATE
+I tried to run PHATE, but it isn't working with the current version of R I have installed. 
+
+If I wanted to run PHATE, I will have to write it up in Python.
+
+However, MAGIC seems to work in R! That's an improvement, as I couldn't get it to work in MATLAB.
+
+```{r}
+# Visualize PHATE
+#neutrophil_data = GetAssayData(neutrophils)
+#neutrophil_data = as.data.frame(neutrophil_data)
+#neutrophil_pca = as.data.frame(prcomp(neutrophil_data)$x)
+#neutrophil_phate = phate(neutrophil_pca)
+#neutrophil_magic = magic(neutrophil_phate)
+
+#ggplot(neutrophil_phate) +
+#  geom_point(aes(x=PC1, y=PC2, color=neutrophil_phate$result$Ifitm1)) +
+#  scale_color_viridis(option="B") +
+#  labs(color="Ifitm1")
+```
+# 6. Visualize Neutrophil data
+The following code visualizes the data as a function of time, and performs UMAP compression.
+
+```{r}
+# Run UMAP
+neutrophils = RunUMAP(neutrophils, 
+                      dims=1:50)
+
+# Create color scheme by changing Identifier
+expt = neutrophils@meta.data["Experiment"]
+expt = as.character(expt$Experiment)
+neutrophils = SetIdent(obj=neutrophils, 
+                       value=expt)
+```
+
+The code block below creates the UMAP plot for neutrophils.
+```{r}
+DimPlot(neutrophils, 
+        reduction='umap',
+        pt.size=5, 
+        dims = c(1,2)) + 
+  labs(x="UMAP 1", y="UMAP 2", title="Neutrophil subpopulations") + 
+  ggplot2::scale_color_manual(values = alpha(c("#FC7753", "#403D58", "#DBD56E"), 0.7)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+
+# 7. Visualize NK-cell data
+This code block does all of the same things as mentioned in the neutrophil section.
+```{r}
+# Run UMAP and TSNE
+nk = RunUMAP(nk, dims=1:50)
+nk = RunTSNE(nk, dims=1:50)
+
+# Create new legend
+expt = nk@meta.data["Experiment"]
+expt = as.character(expt$Experiment)
+nk = SetIdent(obj=nk, 
+                       value=expt)
+
+# Plot the cell population dimension reduction.
+DimPlot(nk, 
+        reduction='umap',
+        pt.size=5, 
+        dims = c(1,2)) + 
+  labs(x="UMAP 1", y="UMAP 2", title="NK Cell subpopulations") + 
+  ggplot2::scale_color_manual(values = alpha(c("#FC7753", "#403D58", "#DBD56E"), 0.7)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+
+# 7. Visualize T-cell data
+This code block does all of the same things as mentioned in the neutrophil section.
+```{r}
+# Run UMAP and TSNE
+tcell = RunUMAP(tcell, 
+                      dims=1:50)
+tcell = RunTSNE(tcell, dims=1:50)
+
+# Create new legend
+expt = tcell@meta.data["Experiment"]
+expt = as.character(expt$Experiment)
+tcell = SetIdent(obj=tcell, 
+                       value=expt)
+
+# Plot the cell population dimension reduction.
+DimPlot(tcell, 
+        reduction='umap',
+        pt.size=5, 
+        dims = c(1,2)) + 
+  labs(x="UMAP 1", y="UMAP 2", title="T-cell subpopulations") + 
+  ggplot2::scale_color_manual(values = alpha(c("#FC7753", "#403D58", "#DBD56E"), 0.7)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+# 7. Visualize Granulocyte data
+This code block does all of the same things as mentioned in the neutrophil section.
+```{r}
+# Run UMAP and TSNE
+gran = RunUMAP(gran, 
+                      dims=1:50)
+
+# Create new legend
+expt = gran@meta.data["Experiment"]
+expt = as.character(expt$Experiment)
+gran = SetIdent(obj=gran, 
+                       value=expt)
+
+# Plot the cell population dimension reduction.
+DimPlot(gran, 
+        reduction='umap',
+        pt.size=5, 
+        dims = c(1,2)) + 
+  labs(x="UMAP 1", y="UMAP 2", title="Granulocyte subpopulations") + 
+  ggplot2::scale_color_manual(values = alpha(c("#FC7753", "#403D58", "#DBD56E"), 0.7)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size=30),
+        legend.text=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        axis.title.y=element_text(size=20),
+        axis.text.x=element_text(size=20),
+        axis.text.y=element_text(size=20)) +
+  geom_hline(yintercept=0) +
+  geom_vline(xintercept=0)
+```
+# 8. OPTIONAL: SAVE DATA OBJECTS
+If this analysis takes awhile, we can save the data objects.
+```{r}
+# Save the file object
+# Dell
+#save(lung, file="D:/Data/scRNASeq/shea/lung.robj")
+
+# ACLX
+#save(lung, file="C:/Users/scott/Data/scRNASeq/shea/lung.robj")
+```
+
+# 9. Conclusions
+
+**From this analysis, I found that:**
+
+  1. Neutrophils have two distinct populations that are dependent on time. Thus, this corresponds to benign / metastatic phenotypes. 
+  2. There is no distinguishable difference between NK cells as a function of time.
+  3. There are 3 different T-cell populations that do not differ as a function of time.
+  4. There are some granulocytes that do differ as a function of time, but as as a function of tissue lineage.
+  
+**To improve upon this analysis, I can do the following:**
+
+  1. Hyperparameter tuning​
+  2. Different UMAP variants​
+  3. Run PHATE (attempted on R / can try on Python)​
+  4. Look at 3 dimensions rather than 2.

@@ -4,7 +4,7 @@ output: html_notebook
 ---
 
 # Summary
-This notebook creates the figures for the neutrophil publication.
+This notebook creates the figures for the immunometabolism publication.
 
 ```{r}
 library(tidyverse)
@@ -14,7 +14,7 @@ library(reshape2)
 library(ggrepel)
 ```
 
-## Visualize time-course flux changes
+# Visualize time-course flux changes as heatmap
 First, we'll load up the neutrophil data and preprocess it.
 ```{r, fig.width=10, fig.height=10}
 filepath = "C:/Users/scott/Analysis/Immune/visualize_COBRA.xlsx"
@@ -51,7 +51,7 @@ ggsave(savepath,
        height=10)
 ```
 
-## Visualize time-course growth rate changes
+##Visualize time-course growth rate changes as heatmap
 Again, load up the neutrophil growth rate fold change data.
 
 ```{r, fig.width=10, fig.height=10}
@@ -124,9 +124,11 @@ ggsave(savepath,
        height=6)
 ```
 
-## Volcano plots of metabolic genes
+# Volcano plots of metabolic genes
 We'll use the final_df_XXXX objects to visualize the volcano plots.
 
+## Neutrophils
+The plot code below creates the neutrophil plot.
 ```{r}
 ggplot(data=mapped_0007[[10]], 
        aes(x=avg_logFC, 
@@ -134,9 +136,9 @@ ggplot(data=mapped_0007[[10]],
            label=HGNC.symbol)) +
        geom_point(alpha=0.1,
                   color=ifelse(mapped_0007[[10]]$p_val_adj<0.01, "red", "gray")) +
-       geom_label_repel(data=mapped_0007[[10]] %>% filter(p_val_adj<0.01),
+       geom_label_repel(data=mapped_0007[[10]] %>% filter(p_val_adj<1E-15),
                     aes(label=subset(mapped_0007[[10]]$HGNC.symbol,
-                                     mapped_0007[[10]]$p_val_adj<0.01)),
+                                     mapped_0007[[10]]$p_val_adj<1E-15)),
                     size=2, 
                     box.padding=0.5, 
                     max.overlaps=Inf) +
@@ -146,9 +148,9 @@ ggplot(data=mapped_0007[[10]],
                      y=-log10(p_val_adj)),
                      color=ifelse(mapped_0714[[10]]$p_val_adj<0.01, "red", "gray"),
                      alpha=0.50) +
-       geom_label_repel(data=mapped_0714[[10]] %>% filter(p_val_adj<0.01),
+       geom_label_repel(data=mapped_0714[[10]] %>% filter(p_val_adj<1E-15),
          aes(label=subset(mapped_0714[[10]]$HGNC.symbol, 
-                          mapped_0714[[10]]$p_val_adj<0.01)), 
+                          mapped_0714[[10]]$p_val_adj<1E-15)), 
                     box.padding=0.5, 
                     max.overlaps=Inf,
                     size=2) +
@@ -158,9 +160,9 @@ ggplot(data=mapped_0007[[10]],
                      y=-log10(p_val_adj)),
                      color=ifelse(mapped_1421[[10]]$p_val_adj<0.01, "red", "gray"),
                      alpha=1.0) +
-       geom_label_repel(data=mapped_1421[[10]] %>% filter(p_val_adj<0.01),
+       geom_label_repel(data=mapped_1421[[10]] %>% filter(p_val_adj<1E-15),
          aes(label=subset(mapped_1421[[10]]$HGNC.symbol, 
-                                         mapped_1421[[10]]$p_val_adj<0.01)),
+                                         mapped_1421[[10]]$p_val_adj<1E-15)),
                     size=2, 
                     box.padding=0.5, 
                     max.overlaps=Inf) +
@@ -170,10 +172,8 @@ ggplot(data=mapped_0007[[10]],
              x="Average log fold change", 
              y="-log Adj. P-value")
 ```
-
-
 ```{r}
-savepath = "C:/Users/scott/Analysis/Immune/volcano_neutrophils.png"
+savepath = "~/Analysis/Immune/volcano_neutrophils.png"
 ggsave(savepath,
        plot=last_plot(),
        device="png",
@@ -182,20 +182,222 @@ ggsave(savepath,
 ```
 
 
-```{r}  
-       scale_color_manual(name="Transition",
-                            values = c("0.0" = alpha("red", 0.1),
-                                       "1.0" = alpha("gray", 0.1),
-                                       "0.1" = alpha("red", 0.5),
-                                       "1.1" = alpha("gray", 0.5),
-                                       "0.2" = alpha("red", 1.0),
-                                       "1.2" = alpha("gray", 1.0)
-                                      ),
-                            labels = c("DEG, Day 0 -> Day 7", 
-                                       "Non-DEG, Day 0 -> Day 7",
-                                       "DEG, Day 7 -> Day 14", 
-                                       "Non-DEG, Day 7 -> Day 14",
-                                       "DEG, Day 14 -> Day 21", 
-                                       "Non-DEG, Day 14 -> Day 21",
-                                       ))
+## NK Cells
+The code below plots the NK cell differential expression.
+```{r}
+ggplot(data=mapped_0007[[11]], 
+       aes(x=avg_logFC, 
+           y=-log10(p_val_adj),
+           label=HGNC.symbol)) +
+       geom_point(alpha=0.1,
+                  color=ifelse(mapped_0007[[11]]$p_val_adj<0.01, "red", "gray")) +
+       geom_label_repel(data=mapped_0007[[11]] %>% filter(p_val_adj<1E-15),
+                    aes(label=subset(mapped_0007[[11]]$HGNC.symbol,
+                                     mapped_0007[[11]]$p_val_adj<1E-15)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       geom_point(data=mapped_0714[[11]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_0714[[11]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=0.50) +
+       geom_label_repel(data=mapped_0714[[11]] %>% filter(p_val_adj<1E-15),
+         aes(label=subset(mapped_0714[[11]]$HGNC.symbol, 
+                          mapped_0714[[11]]$p_val_adj<1E-15)), 
+                    box.padding=0.5, 
+                    max.overlaps=Inf,
+                    size=2) +
+  
+       geom_point(data=mapped_1421[[11]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_1421[[11]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=1.0) +
+       geom_label_repel(data=mapped_1421[[11]] %>% filter(p_val_adj<1E-15),
+         aes(label=subset(mapped_1421[[11]]$HGNC.symbol, 
+                                         mapped_1421[[11]]$p_val_adj<1E-15)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       theme_minimal() +
+       labs(title="NK-cell metabolic gene differential expression", 
+             x="Average log fold change", 
+             y="-log Adj. P-value")
+```
+
+```{r}
+savepath = "~/Analysis/Immune/volcano_nk.png"
+ggsave(savepath,
+       plot=last_plot(),
+       device="png",
+       width=10,
+       height=6)
+```
+
+## T Cells
+The code below plots the T cell differential expression.
+```{r}
+ggplot(data=mapped_0007[[8]], 
+       aes(x=avg_logFC, 
+           y=-log10(p_val_adj),
+           label=HGNC.symbol)) +
+       geom_point(alpha=0.1,
+                  color=ifelse(mapped_0007[[8]]$p_val_adj<0.01, "red", "gray")) +
+       geom_label_repel(data=mapped_0007[[8]] %>% filter(p_val_adj<0.01),
+                    aes(label=subset(mapped_0007[[8]]$HGNC.symbol,
+                                     mapped_0007[[8]]$p_val_adj<0.01)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       geom_point(data=mapped_0714[[8]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_0714[[8]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=0.50) +
+       geom_label_repel(data=mapped_0714[[8]] %>% filter(p_val_adj<0.01),
+         aes(label=subset(mapped_0714[[8]]$HGNC.symbol, 
+                          mapped_0714[[8]]$p_val_adj<0.01)), 
+                    box.padding=0.5, 
+                    max.overlaps=Inf,
+                    size=2) +
+  
+       geom_point(data=mapped_1421[[8]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_1421[[8]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=1.0) +
+       geom_label_repel(data=mapped_1421[[8]] %>% filter(p_val_adj<0.01),
+         aes(label=subset(mapped_1421[[8]]$HGNC.symbol, 
+                                         mapped_1421[[8]]$p_val_adj<0.01)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       theme_minimal() +
+       labs(title="T-cell metabolic gene differential expression", 
+             x="Average log fold change", 
+             y="-log Adj. P-value")
+```
+
+```{r}
+savepath = "~/Analysis/Immune/volcano_tcell.png"
+ggsave(savepath,
+       plot=last_plot(),
+       device="png",
+       width=10,
+       height=6)
+```
+
+## Monocytes
+The code below plots the monocyte differential expression.
+```{r}
+ggplot(data=mapped_0007[[4]], 
+       aes(x=avg_logFC, 
+           y=-log10(p_val_adj),
+           label=HGNC.symbol)) +
+       geom_point(alpha=0.1,
+                  color=ifelse(mapped_0007[[4]]$p_val_adj<0.01, "red", "gray")) +
+       geom_label_repel(data=mapped_0007[[4]] %>% filter(p_val_adj<0.01),
+                    aes(label=subset(mapped_0007[[4]]$HGNC.symbol,
+                                     mapped_0007[[4]]$p_val_adj<0.01)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       geom_point(data=mapped_0714[[4]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_0714[[4]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=0.50) +
+       geom_label_repel(data=mapped_0714[[4]] %>% filter(p_val_adj<0.01),
+         aes(label=subset(mapped_0714[[4]]$HGNC.symbol, 
+                          mapped_0714[[4]]$p_val_adj<0.01)), 
+                    box.padding=0.5, 
+                    max.overlaps=Inf,
+                    size=2) +
+  
+       geom_point(data=mapped_1421[[4]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_1421[[4]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=1.0) +
+       geom_label_repel(data=mapped_1421[[4]] %>% filter(p_val_adj<0.01),
+         aes(label=subset(mapped_1421[[4]]$HGNC.symbol, 
+                                         mapped_1421[[4]]$p_val_adj<0.01)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       theme_minimal() +
+       labs(title="Monocyte metabolic gene differential expression", 
+             x="Average log fold change", 
+             y="-log Adj. P-value")
+```
+
+```{r}
+savepath = "~/Analysis/Immune/volcano_monocyte.png"
+ggsave(savepath,
+       plot=last_plot(),
+       device="png",
+       width=10,
+       height=6)
+```
+
+## HSC
+The code below plots HSCs
+```{r}
+ggplot(data=mapped_0007[[13]], 
+       aes(x=avg_logFC, 
+           y=-log10(p_val_adj),
+           label=HGNC.symbol)) +
+       geom_point(alpha=0.1,
+                  color=ifelse(mapped_0007[[13]]$p_val_adj<0.01, "red", "gray")) +
+       geom_label_repel(data=mapped_0007[[13]] %>% filter(p_val_adj<0.01),
+                    aes(label=subset(mapped_0007[[13]]$HGNC.symbol,
+                                     mapped_0007[[13]]$p_val_adj<0.01)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       geom_point(data=mapped_0714[[13]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_0714[[13]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=0.50) +
+       geom_label_repel(data=mapped_0714[[13]] %>% filter(p_val_adj<0.01),
+         aes(label=subset(mapped_0714[[13]]$HGNC.symbol, 
+                          mapped_0714[[13]]$p_val_adj<0.01)), 
+                    box.padding=0.5, 
+                    max.overlaps=Inf,
+                    size=2) +
+  
+       geom_point(data=mapped_1421[[13]],
+                 aes(x=avg_logFC,
+                     y=-log10(p_val_adj)),
+                     color=ifelse(mapped_1421[[13]]$p_val_adj<0.01, "red", "gray"),
+                     alpha=1.0) +
+       geom_label_repel(data=mapped_1421[[13]] %>% filter(p_val_adj<0.01),
+         aes(label=subset(mapped_1421[[13]]$HGNC.symbol, 
+                                         mapped_1421[[13]]$p_val_adj<0.01)),
+                    size=2, 
+                    box.padding=0.5, 
+                    max.overlaps=Inf) +
+  
+       theme_minimal() +
+       labs(title="HSC metabolic gene differential expression", 
+             x="Average log fold change", 
+             y="-log Adj. P-value")
+```
+
+```{r}
+savepath = "~/Analysis/Immune/volcano_hsc.png"
+ggsave(savepath,
+       plot=last_plot(),
+       device="png",
+       width=10,
+       height=6)
 ```

@@ -1769,7 +1769,13 @@ summary {
 <ul>
 <li><a href="#summary">Summary</a></li>
 <li><a href="#load-libraries">1. Load libraries</a></li>
-<li><a href="#building-trajectories">2. Building Trajectories</a></li>
+<li><a href="#set-up-data-objects-for-monocle">2. Set up data objects for Monocle</a></li>
+<li><a href="#correct-for-batch-effects">3. Correct for batch effects</a></li>
+<li><a href="#dimension-reduction">4. Dimension reduction</a></li>
+<li><a href="#perform-clustering">5. Perform Clustering</a></li>
+<li><a href="#construct-the-pseudotime-trajectories">6. Construct the Pseudotime Trajectories</a></li>
+<li><a href="#plot-the-pseudotime-trajectory-for-the-developmental-program">7. Plot the pseudotime trajectory for the developmental program</a></li>
+<li><a href="#plot-the-gene-pseudotime-trajectories">8. Plot the gene pseudotime trajectories</a></li>
 </ul>
 </div>
 
@@ -1864,27 +1870,57 @@ The following objects are masked from 㤼㸱package:Biobase㤼㸲:
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="building-trajectories" class="section level1">
-<h1>2. Building Trajectories</h1>
+<div id="set-up-data-objects-for-monocle" class="section level1">
+<h1>2. Set up data objects for Monocle</h1>
+<p>We need to transform the Seurat object to a Cell Data Set, that can be used for Monocle and other packages.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1wID0gYWxpZ25fY2RzKHRtcCwgYWxpZ25tZW50X2dyb3VwPVwiYmF0Y2hcIilcblxuYGBgIn0= -->
-<pre class="r"><code>tmp = align_cds(tmp, alignment_group=&quot;batch&quot;)
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1wID0gYXMuY2VsbF9kYXRhX3NldChsdW5nKVxuYGBgIn0= -->
+<pre class="r"><code>tmp = as.cell_data_set(lung)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQWxpZ25pbmcgY2VsbHMgZnJvbSBkaWZmZXJlbnQgYmF0Y2hlcyB1c2luZyBCYXRjaGVsb3IuIFxuUGxlYXNlIHJlbWVtYmVyIHRvIGNpdGU6XG5cdCBIYWdodmVyZGkgTCwgTHVuIEFUTCwgTW9yZ2FuIE1ELCBNYXJpb25pIEpDICgyMDE4KS4gJ0JhdGNoIGVmZmVjdHMgaW4gc2luZ2xlLWNlbGwgUk5BLXNlcXVlbmNpbmcgZGF0YSBhcmUgY29ycmVjdGVkIGJ5IG1hdGNoaW5nIG11dHVhbCBuZWFyZXN0IG5laWdoYm9ycy4nIE5hdC4gQmlvdGVjaG5vbC4sIDM2KDUpLCA0MjEtNDI3LiBkb2k6IDEwLjEwMzgvbmJ0LjQwOTFcbkVycm9yOiBzdWJzY3JpcHQgY29udGFpbnMgaW52YWxpZCBuYW1lc1xuIn0= -->
-<pre><code>Aligning cells from different batches using Batchelor. 
-Please remember to cite:
-     Haghverdi L, Lun ATL, Morgan MD, Marioni JC (2018). &#39;Batch effects in single-cell RNA-sequencing data are corrected by matching mutual nearest neighbors.&#39; Nat. Biotechnol., 36(5), 421-427. doi: 10.1038/nbt.4091
-Error: subscript contains invalid names</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="correct-for-batch-effects" class="section level1">
+<h1>3. Correct for batch effects</h1>
+<p>Now let’s adjust the data by batch effects.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBhIGhlbHBlciBmdW5jdGlvbiB0byBpZGVudGlmeSB0aGUgcm9vdCBwcmluY2lwYWwgcG9pbnRzOlxuZ2V0X2VhcmxpZXN0X3ByaW5jaXBhbF9ub2RlID0gZnVuY3Rpb24oY2RzLCB0aW1lX2Jpbj1cIjEzMC0xNzBcIil7XG4gIGNlbGxfaWRzID0gd2hpY2goY29sRGF0YShjZHMpWywgXCJlbWJyeW8udGltZS5iaW5cIl0gPT0gdGltZV9iaW4pXG4gIFxuICBjbG9zZXN0X3ZlcnRleCA9XG4gIGNkc0BwcmluY2lwYWxfZ3JhcGhfYXV4W1tcIlVNQVBcIl1dJHByX2dyYXBoX2NlbGxfcHJval9jbG9zZXN0X3ZlcnRleFxuICBjbG9zZXN0X3ZlcnRleCA9IGFzLm1hdHJpeChjbG9zZXN0X3ZlcnRleFtjb2xuYW1lcyhjZHMpLCBdKVxuICByb290X3ByX25vZGVzID1cbiAgaWdyYXBoOjpWKHByaW5jaXBhbF9ncmFwaChjZHMpW1tcIlVNQVBcIl1dKSRuYW1lW2FzLm51bWVyaWMobmFtZXNcbiAgKHdoaWNoLm1heCh0YWJsZShjbG9zZXN0X3ZlcnRleFtjZWxsX2lkcyxdKSkpKV1cbiAgXG4gIHJvb3RfcHJfbm9kZXNcbn1cbnRtcCA9IG9yZGVyX2NlbGxzKHRtcCwgcm9vdF9wcl9ub2Rlcz1nZXRfZWFybGllc3RfcHJpbmNpcGFsX25vZGUodG1wKSlcbmBgYCJ9 -->
-<pre class="r"><code># a helper function to identify the root principal points:
-get_earliest_principal_node = function(cds, time_bin=&quot;130-170&quot;){
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1wID0gYWxpZ25fY2RzKHRtcCwgYWxpZ25tZW50X2dyb3VwPVwiYmF0Y2hcIilcbmBgYCJ9 -->
+<pre class="r"><code>tmp = align_cds(tmp, alignment_group=&quot;batch&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="dimension-reduction" class="section level1">
+<h1>4. Dimension reduction</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1wID0gcmVkdWNlX2RpbWVuc2lvbihjZHM9dG1wLCByZWR1Y3Rpb25fbWV0aG9kPSdVTUFQJylcbnRtcCA9IGNsdXN0ZXJfY2VsbHMoY2RzPXRtcCwgcmVkdWN0aW9uX21ldGhvZD0nVU1BUCcpXG5gYGAifQ== -->
+<pre class="r"><code>tmp = reduce_dimension(cds=tmp, reduction_method=&#39;UMAP&#39;)
+tmp = cluster_cells(cds=tmp, reduction_method=&#39;UMAP&#39;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="perform-clustering" class="section level1">
+<h1>5. Perform Clustering</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudG1wID0gbGVhcm5fZ3JhcGgodG1wLCB1c2VfcGFydGl0aW9uPVRSVUUpXG50bXAgPSBvcmRlcl9jZWxscyh0bXAsIHJlZHVjdGlvbl9tZXRob2Q9XCJVTUFQXCIpXG5gYGAifQ== -->
+<pre class="r"><code>tmp = learn_graph(tmp, use_partition=TRUE)
+tmp = order_cells(tmp, reduction_method=&quot;UMAP&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="construct-the-pseudotime-trajectories" class="section level1">
+<h1>6. Construct the Pseudotime Trajectories</h1>
+<p>The code block below identifies the earliest principle node to start the pseudotime trajectory analysis.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ2V0X2VhcmxpZXN0X3ByaW5jaXBhbF9ub2RlID0gZnVuY3Rpb24oY2RzLCB0aW1lX2Jpbj1cIjEzMC0xNzBcIil7XG4gIGNlbGxfaWRzID0gd2hpY2goY29sRGF0YShjZHMpWywgXCJlbWJyeW8udGltZS5iaW5cIl0gPT0gdGltZV9iaW4pXG4gIFxuICBjbG9zZXN0X3ZlcnRleCA9XG4gIGNkc0BwcmluY2lwYWxfZ3JhcGhfYXV4W1tcIlVNQVBcIl1dJHByX2dyYXBoX2NlbGxfcHJval9jbG9zZXN0X3ZlcnRleFxuICBjbG9zZXN0X3ZlcnRleCA9IGFzLm1hdHJpeChjbG9zZXN0X3ZlcnRleFtjb2xuYW1lcyhjZHMpLCBdKVxuICByb290X3ByX25vZGVzID1cbiAgaWdyYXBoOjpWKHByaW5jaXBhbF9ncmFwaChjZHMpW1tcIlVNQVBcIl1dKSRuYW1lW2FzLm51bWVyaWMobmFtZXNcbiAgKHdoaWNoLm1heCh0YWJsZShjbG9zZXN0X3ZlcnRleFtjZWxsX2lkcyxdKSkpKV1cbiAgXG4gIHJvb3RfcHJfbm9kZXNcbn1cblxuIyBOb3cgcGVyZm9ybSB0aGUgb3JkZXJpbmcgdXNpbmcgdGhlIGN1c3RvbSBmdW5jdGlvblxudG1wID0gb3JkZXJfY2VsbHModG1wLCByb290X3ByX25vZGVzPWdldF9lYXJsaWVzdF9wcmluY2lwYWxfbm9kZSh0bXApKVxuYGBgIn0= -->
+<pre class="r"><code>get_earliest_principal_node = function(cds, time_bin=&quot;130-170&quot;){
   cell_ids = which(colData(cds)[, &quot;embryo.time.bin&quot;] == time_bin)
   
   closest_vertex =
@@ -1896,25 +1932,40 @@ get_earliest_principal_node = function(cds, time_bin=&quot;130-170&quot;){
   
   root_pr_nodes
 }
+
+# Now perform the ordering using the custom function
 tmp = order_cells(tmp, root_pr_nodes=get_earliest_principal_node(tmp))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="plot-the-pseudotime-trajectory-for-the-developmental-program" class="section level1">
+<h1>7. Plot the pseudotime trajectory for the developmental program</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdF9jZWxscyhcbiAgY2RzID0gdG1wLFxuICBjb2xvcl9jZWxsc19ieSA9IFwicHNldWRvdGltZVwiLFxuICBzaG93X3RyYWplY3RvcnlfZ3JhcGggPSBUUlVFLFxuKVxuXG5GZWF0dXJlUGxvdCh0bXAsIGMoXCJsdW5nLmguZDIxX0NHQUNUR1RBQUFBQ1wiKSlcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdF9jZWxscyhcbiAgY2RzID0gdG1wLFxuICBjb2xvcl9jZWxsc19ieSA9IFwicHNldWRvdGltZVwiLFxuICBzaG93X3RyYWplY3RvcnlfZ3JhcGggPSBUUlVFLFxuKVxuXG5teV9nZW5lcyA9IHJvdy5uYW1lcyhzdWJzZXQoZkRhdGEodG1wKSwgZ2VuZV9zaG9ydF9uYW1lICVpbiUgYyhcIkxoZGFcIikpKSBcbmBgYCJ9 -->
 <pre class="r"><code>plot_cells(
   cds = tmp,
   color_cells_by = &quot;pseudotime&quot;,
   show_trajectory_graph = TRUE,
 )
 
-FeaturePlot(tmp, c(&quot;lung.h.d21_CGACTGTAAAAC&quot;))</code></pre>
+my_genes = row.names(subset(fData(tmp), gene_short_name %in% c(&quot;Lhda&quot;))) </code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="plot-the-gene-pseudotime-trajectories" class="section level1">
+<h1>8. Plot the gene pseudotime trajectories</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdF9nZW5lc19pbl9wc2V1ZG90aW1lKGNkc19zdWJzZXQ9dG1wKVxuYGBgIn0= -->
+<pre class="r"><code>plot_genes_in_pseudotime(cds_subset=tmp)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkltbXVuZSBjZWxsIHBzZXVkb3RpbWUgYW5hbHlzaXMiDQphdXRob3I6ICJTY290dCBDYW1waXQiDQpvdXRwdXQ6IA0KICBodG1sX25vdGVib29rOg0KICAgIHRvYzogeWVzDQogICAgdGhlbWU6IHVuaXRlZA0KLS0tDQoNCiMgU3VtbWFyeQ0KVGhpcyBub3RlYm9vayBwZXJmb3JtcyBkaWZmZXJlbnRpYWwgZ2VuZSBleHByZXNzaW9uIGFuYWx5c2lzIGFjcm9zcyBhbGwgY2VsbCB0eXBlcy4gQWRkaXRpb25hbGx5LCBpdCBleHRyYWN0cyBtZXRhYm9saWMgZ2VuZXMgY29ycmVzcG9uZGluZyB0byBhIG1ldGFib2xpYyByZWNvbnN0cnVjdGlvbi4NCg0KIyAxLiBMb2FkIGxpYnJhcmllcw0KYGBge3J9DQppbnN0YWxsLnBhY2thZ2VzKGMoIm1nY3YiLCAic3BsaW5lcyIsICJTZXVyYXQiLCAidGlkeXZlcnNlIiwgDQogICAgICAgICAgICAgICAgICAgInZpcmlkaXMiLCAibWF0cml4U3RhdHMiLCAiVXBTZXRSIiwgDQogICAgICAgICAgICAgICAgICAgInJlc2hhcGUyIiwgImdncGxvdDIiLCAicGhhdGVSIiksIGRlcGVuZGVuY2llcz1UUlVFKQ0KDQpsaWJyYXJ5KG1nY3YpDQpsaWJyYXJ5KHNwbGluZXMpDQpsaWJyYXJ5KFNldXJhdCkNCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeSh2aXJpZGlzKQ0KbGlicmFyeShtYXRyaXhTdGF0cykNCmxpYnJhcnkoVXBTZXRSKQ0KbGlicmFyeShyZXNoYXBlMikNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkocGhhdGVSKQ0KbGlicmFyeShyZXRpY3VsYXRlKQ0KI2luc3RhbGwucGFja2FnZXMoJ3JlYWR4bCcpDQpsaWJyYXJ5KHJlYWR4bCkNCg0KIyBNb25vY2xlMyBpcyBzdGlsbCBpbiBiZXRhDQojQmlvY01hbmFnZXI6Omluc3RhbGwoYygnQmlvY0dlbmVyaWNzJywgJ0RlbGF5ZWRBcnJheScsICdEZWxheWVkTWF0cml4U3RhdHMnLA0KIyAgICAgICAgICAgICAgICAgICAgICAgJ2xpbW1hJywgJ1M0VmVjdG9ycycsICdTaW5nbGVDZWxsRXhwZXJpbWVudCcsDQojICAgICAgICAgICAgICAgICAgICAgICAnU3VtbWFyaXplZEV4cGVyaW1lbnQnLCAnYmF0Y2hlbG9yJywgJ01hdHJpeC51dGlscycpKQ0KI2luc3RhbGwucGFja2FnZXMoImRldnRvb2xzIikNCiNsaWJyYXJ5KGRldnRvb2xzKQ0KI2RldnRvb2xzOjppbnN0YWxsX2dpdGh1YignY29sZS10cmFwbmVsbC1sYWIvbGVpZGVuYmFzZScpDQojZGV2dG9vbHM6Omluc3RhbGxfZ2l0aHViKCdjb2xlLXRyYXBuZWxsLWxhYi9tb25vY2xlMycpDQoNCiNyZW1vdGVzOjppbnN0YWxsX2dpdGh1Yignc2F0aWphbGFiL3NldXJhdC13cmFwcGVycycpDQoNCmxpYnJhcnkoU2V1cmF0V3JhcHBlcnMpDQpsaWJyYXJ5KG1vbm9jbGUzKQ0KbGlicmFyeShNYXRyaXgpDQpgYGANCg0KIyAyLiBCdWlsZGluZyBUcmFqZWN0b3JpZXMNCmBgYHtyfQ0KdG1wID0gYXMuY2VsbF9kYXRhX3NldChsdW5nKQ0KdG1wID0gYWxpZ25fY2RzKHRtcCwgYWxpZ25tZW50X2dyb3VwPSJiYXRjaCIpDQp0bXAgPSByZWR1Y2VfZGltZW5zaW9uKGNkcz10bXAsIHJlZHVjdGlvbl9tZXRob2Q9J1VNQVAnKQ0KdG1wID0gY2x1c3Rlcl9jZWxscyhjZHM9dG1wLCByZWR1Y3Rpb25fbWV0aG9kPSdVTUFQJykNCnRtcCA9IGxlYXJuX2dyYXBoKHRtcCwgdXNlX3BhcnRpdGlvbj1UUlVFKQ0KdG1wID0gb3JkZXJfY2VsbHModG1wLCByZWR1Y3Rpb25fbWV0aG9kPSJVTUFQIikNCmBgYA0KDQpgYGB7cn0NCiMgYSBoZWxwZXIgZnVuY3Rpb24gdG8gaWRlbnRpZnkgdGhlIHJvb3QgcHJpbmNpcGFsIHBvaW50czoNCmdldF9lYXJsaWVzdF9wcmluY2lwYWxfbm9kZSA9IGZ1bmN0aW9uKGNkcywgdGltZV9iaW49IjEzMC0xNzAiKXsNCiAgY2VsbF9pZHMgPSB3aGljaChjb2xEYXRhKGNkcylbLCAiZW1icnlvLnRpbWUuYmluIl0gPT0gdGltZV9iaW4pDQogIA0KICBjbG9zZXN0X3ZlcnRleCA9DQogIGNkc0BwcmluY2lwYWxfZ3JhcGhfYXV4W1siVU1BUCJdXSRwcl9ncmFwaF9jZWxsX3Byb2pfY2xvc2VzdF92ZXJ0ZXgNCiAgY2xvc2VzdF92ZXJ0ZXggPSBhcy5tYXRyaXgoY2xvc2VzdF92ZXJ0ZXhbY29sbmFtZXMoY2RzKSwgXSkNCiAgcm9vdF9wcl9ub2RlcyA9DQogIGlncmFwaDo6VihwcmluY2lwYWxfZ3JhcGgoY2RzKVtbIlVNQVAiXV0pJG5hbWVbYXMubnVtZXJpYyhuYW1lcw0KICAod2hpY2gubWF4KHRhYmxlKGNsb3Nlc3RfdmVydGV4W2NlbGxfaWRzLF0pKSkpXQ0KICANCiAgcm9vdF9wcl9ub2Rlcw0KfQ0KdG1wID0gb3JkZXJfY2VsbHModG1wLCByb290X3ByX25vZGVzPWdldF9lYXJsaWVzdF9wcmluY2lwYWxfbm9kZSh0bXApKQ0KYGBgDQoNCmBgYHtyfQ0KcGxvdF9jZWxscygNCiAgY2RzID0gdG1wLA0KICBjb2xvcl9jZWxsc19ieSA9ICJwc2V1ZG90aW1lIiwNCiAgc2hvd190cmFqZWN0b3J5X2dyYXBoID0gVFJVRSwNCikNCg0KRmVhdHVyZVBsb3QodG1wLCBjKCJsdW5nLmguZDIxX0NHQUNUR1RBQUFBQyIpKQ0KYGBg</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkltbXVuZSBjZWxsIHBzZXVkb3RpbWUgYW5hbHlzaXMiDQphdXRob3I6ICJTY290dCBDYW1waXQiDQpvdXRwdXQ6IA0KICBodG1sX25vdGVib29rOg0KICAgIHRvYzogeWVzDQogICAgdGhlbWU6IHVuaXRlZA0KLS0tDQoNCiMgU3VtbWFyeQ0KVGhpcyBub3RlYm9vayBwZXJmb3JtcyBkaWZmZXJlbnRpYWwgZ2VuZSBleHByZXNzaW9uIGFuYWx5c2lzIGFjcm9zcyBhbGwgY2VsbCB0eXBlcy4gQWRkaXRpb25hbGx5LCBpdCBleHRyYWN0cyBtZXRhYm9saWMgZ2VuZXMgY29ycmVzcG9uZGluZyB0byBhIG1ldGFib2xpYyByZWNvbnN0cnVjdGlvbi4NCg0KIyAxLiBMb2FkIGxpYnJhcmllcw0KYGBge3J9DQppbnN0YWxsLnBhY2thZ2VzKGMoIm1nY3YiLCAic3BsaW5lcyIsICJTZXVyYXQiLCAidGlkeXZlcnNlIiwgDQogICAgICAgICAgICAgICAgICAgInZpcmlkaXMiLCAibWF0cml4U3RhdHMiLCAiVXBTZXRSIiwgDQogICAgICAgICAgICAgICAgICAgInJlc2hhcGUyIiwgImdncGxvdDIiLCAicGhhdGVSIiksIGRlcGVuZGVuY2llcz1UUlVFKQ0KDQpsaWJyYXJ5KG1nY3YpDQpsaWJyYXJ5KHNwbGluZXMpDQpsaWJyYXJ5KFNldXJhdCkNCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeSh2aXJpZGlzKQ0KbGlicmFyeShtYXRyaXhTdGF0cykNCmxpYnJhcnkoVXBTZXRSKQ0KbGlicmFyeShyZXNoYXBlMikNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkocGhhdGVSKQ0KbGlicmFyeShyZXRpY3VsYXRlKQ0KI2luc3RhbGwucGFja2FnZXMoJ3JlYWR4bCcpDQpsaWJyYXJ5KHJlYWR4bCkNCg0KIyBNb25vY2xlMyBpcyBzdGlsbCBpbiBiZXRhDQojQmlvY01hbmFnZXI6Omluc3RhbGwoYygnQmlvY0dlbmVyaWNzJywgJ0RlbGF5ZWRBcnJheScsICdEZWxheWVkTWF0cml4U3RhdHMnLA0KIyAgICAgICAgICAgICAgICAgICAgICAgJ2xpbW1hJywgJ1M0VmVjdG9ycycsICdTaW5nbGVDZWxsRXhwZXJpbWVudCcsDQojICAgICAgICAgICAgICAgICAgICAgICAnU3VtbWFyaXplZEV4cGVyaW1lbnQnLCAnYmF0Y2hlbG9yJywgJ01hdHJpeC51dGlscycpKQ0KI2luc3RhbGwucGFja2FnZXMoImRldnRvb2xzIikNCiNsaWJyYXJ5KGRldnRvb2xzKQ0KI2RldnRvb2xzOjppbnN0YWxsX2dpdGh1YignY29sZS10cmFwbmVsbC1sYWIvbGVpZGVuYmFzZScpDQojZGV2dG9vbHM6Omluc3RhbGxfZ2l0aHViKCdjb2xlLXRyYXBuZWxsLWxhYi9tb25vY2xlMycpDQoNCiNyZW1vdGVzOjppbnN0YWxsX2dpdGh1Yignc2F0aWphbGFiL3NldXJhdC13cmFwcGVycycpDQoNCmxpYnJhcnkoU2V1cmF0V3JhcHBlcnMpDQpsaWJyYXJ5KG1vbm9jbGUzKQ0KbGlicmFyeShNYXRyaXgpDQpgYGANCg0KIyAyLiBTZXQgdXAgZGF0YSBvYmplY3RzIGZvciBNb25vY2xlDQpXZSBuZWVkIHRvIHRyYW5zZm9ybSB0aGUgU2V1cmF0IG9iamVjdCB0byBhIENlbGwgRGF0YSBTZXQsIHRoYXQgY2FuIGJlIHVzZWQgZm9yIE1vbm9jbGUgYW5kIG90aGVyIHBhY2thZ2VzLg0KYGBge3J9DQp0bXAgPSBhcy5jZWxsX2RhdGFfc2V0KGx1bmcpDQpgYGANCg0KIyAzLiBDb3JyZWN0IGZvciBiYXRjaCBlZmZlY3RzDQoNCk5vdyBsZXQncyBhZGp1c3QgdGhlIGRhdGEgYnkgYmF0Y2ggZWZmZWN0cy4NCmBgYHtyfQ0KdG1wID0gYWxpZ25fY2RzKHRtcCwgYWxpZ25tZW50X2dyb3VwPSJiYXRjaCIpDQpgYGANCg0KIyA0LiBEaW1lbnNpb24gcmVkdWN0aW9uDQpgYGB7cn0NCnRtcCA9IHJlZHVjZV9kaW1lbnNpb24oY2RzPXRtcCwgcmVkdWN0aW9uX21ldGhvZD0nVU1BUCcpDQp0bXAgPSBjbHVzdGVyX2NlbGxzKGNkcz10bXAsIHJlZHVjdGlvbl9tZXRob2Q9J1VNQVAnKQ0KYGBgDQoNCiMgNS4gUGVyZm9ybSBDbHVzdGVyaW5nIA0KYGBge3J9DQp0bXAgPSBsZWFybl9ncmFwaCh0bXAsIHVzZV9wYXJ0aXRpb249VFJVRSkNCnRtcCA9IG9yZGVyX2NlbGxzKHRtcCwgcmVkdWN0aW9uX21ldGhvZD0iVU1BUCIpDQpgYGANCg0KIyA2LiBDb25zdHJ1Y3QgdGhlIFBzZXVkb3RpbWUgVHJhamVjdG9yaWVzDQpUaGUgY29kZSBibG9jayBiZWxvdyBpZGVudGlmaWVzIHRoZSBlYXJsaWVzdCBwcmluY2lwbGUgbm9kZSB0byBzdGFydCB0aGUgcHNldWRvdGltZSB0cmFqZWN0b3J5IGFuYWx5c2lzLg0KYGBge3J9DQpnZXRfZWFybGllc3RfcHJpbmNpcGFsX25vZGUgPSBmdW5jdGlvbihjZHMsIHRpbWVfYmluPSIxMzAtMTcwIil7DQogIGNlbGxfaWRzID0gd2hpY2goY29sRGF0YShjZHMpWywgImVtYnJ5by50aW1lLmJpbiJdID09IHRpbWVfYmluKQ0KICANCiAgY2xvc2VzdF92ZXJ0ZXggPQ0KICBjZHNAcHJpbmNpcGFsX2dyYXBoX2F1eFtbIlVNQVAiXV0kcHJfZ3JhcGhfY2VsbF9wcm9qX2Nsb3Nlc3RfdmVydGV4DQogIGNsb3Nlc3RfdmVydGV4ID0gYXMubWF0cml4KGNsb3Nlc3RfdmVydGV4W2NvbG5hbWVzKGNkcyksIF0pDQogIHJvb3RfcHJfbm9kZXMgPQ0KICBpZ3JhcGg6OlYocHJpbmNpcGFsX2dyYXBoKGNkcylbWyJVTUFQIl1dKSRuYW1lW2FzLm51bWVyaWMobmFtZXMNCiAgKHdoaWNoLm1heCh0YWJsZShjbG9zZXN0X3ZlcnRleFtjZWxsX2lkcyxdKSkpKV0NCiAgDQogIHJvb3RfcHJfbm9kZXMNCn0NCg0KIyBOb3cgcGVyZm9ybSB0aGUgb3JkZXJpbmcgdXNpbmcgdGhlIGN1c3RvbSBmdW5jdGlvbg0KdG1wID0gb3JkZXJfY2VsbHModG1wLCByb290X3ByX25vZGVzPWdldF9lYXJsaWVzdF9wcmluY2lwYWxfbm9kZSh0bXApKQ0KYGBgDQoNCiMgNy4gUGxvdCB0aGUgcHNldWRvdGltZSB0cmFqZWN0b3J5IGZvciB0aGUgZGV2ZWxvcG1lbnRhbCBwcm9ncmFtDQpgYGB7cn0NCnBsb3RfY2VsbHMoDQogIGNkcyA9IHRtcCwNCiAgY29sb3JfY2VsbHNfYnkgPSAicHNldWRvdGltZSIsDQogIHNob3dfdHJhamVjdG9yeV9ncmFwaCA9IFRSVUUsDQopDQoNCm15X2dlbmVzID0gcm93Lm5hbWVzKHN1YnNldChmRGF0YSh0bXApLCBnZW5lX3Nob3J0X25hbWUgJWluJSBjKCJMaGRhIikpKSANCmBgYA0KDQojIDguIFBsb3QgdGhlIGdlbmUgcHNldWRvdGltZSB0cmFqZWN0b3JpZXMNCmBgYHtyfQ0KcGxvdF9nZW5lc19pbl9wc2V1ZG90aW1lKGNkc19zdWJzZXQ9dG1wKQ0KYGBg</div>
 
 
 

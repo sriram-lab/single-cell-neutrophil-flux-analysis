@@ -46,18 +46,34 @@ library(monocle3)
 library(Matrix)
 ```
 
-# 2. Building Trajectories
+# 2. Set up data objects for Monocle
+We need to transform the Seurat object to a Cell Data Set, that can be used for Monocle and other packages.
 ```{r}
 tmp = as.cell_data_set(lung)
+```
+
+# 3. Correct for batch effects
+
+Now let's adjust the data by batch effects.
+```{r}
 tmp = align_cds(tmp, alignment_group="batch")
+```
+
+# 4. Dimension reduction
+```{r}
 tmp = reduce_dimension(cds=tmp, reduction_method='UMAP')
 tmp = cluster_cells(cds=tmp, reduction_method='UMAP')
+```
+
+# 5. Perform Clustering 
+```{r}
 tmp = learn_graph(tmp, use_partition=TRUE)
 tmp = order_cells(tmp, reduction_method="UMAP")
 ```
 
+# 6. Construct the Pseudotime Trajectories
+The code block below identifies the earliest principle node to start the pseudotime trajectory analysis.
 ```{r}
-# a helper function to identify the root principal points:
 get_earliest_principal_node = function(cds, time_bin="130-170"){
   cell_ids = which(colData(cds)[, "embryo.time.bin"] == time_bin)
   
@@ -70,9 +86,12 @@ get_earliest_principal_node = function(cds, time_bin="130-170"){
   
   root_pr_nodes
 }
+
+# Now perform the ordering using the custom function
 tmp = order_cells(tmp, root_pr_nodes=get_earliest_principal_node(tmp))
 ```
 
+# 7. Plot the pseudotime trajectory for the developmental program
 ```{r}
 plot_cells(
   cds = tmp,
@@ -80,5 +99,10 @@ plot_cells(
   show_trajectory_graph = TRUE,
 )
 
-FeaturePlot(tmp, c("lung.h.d21_CGACTGTAAAAC"))
+my_genes = row.names(subset(fData(tmp), gene_short_name %in% c("Lhda"))) 
+```
+
+# 8. Plot the gene pseudotime trajectories
+```{r}
+plot_genes_in_pseudotime(cds_subset=tmp)
 ```

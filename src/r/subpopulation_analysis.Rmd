@@ -72,7 +72,7 @@ for(i in 1:length(celltype.list)){
 }
 ```
 
-#3. Data visualization from dimension reduction
+# 3. Data visualization from dimension reduction
 Now, let's get a high level overview of the data using t-SNE and UMAP.
 
 ## T-SNE compression
@@ -296,7 +296,7 @@ If this analysis takes awhile, we can save the data objects.
   
 **To improve upon this analysis, I can do the following:**
 
-  1. Hyperparameter tuning​
-  2. Different UMAP variants​
-  3. Run PHATE (attempted on R / can try on Python)​
+  1. Hyperparameter tuning
+  2. Different UMAP variants
+  3. Run PHATE (attempted on R / can try on Python)
   4. Look at 3 dimensions rather than 2.

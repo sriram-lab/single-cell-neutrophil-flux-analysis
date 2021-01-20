@@ -23,7 +23,7 @@ library(reshape2)
 library(ggplot2)
 library(phateR)
 library(reticulate)
-install.packages('readxl')
+#install.packages('readxl')
 library(readxl)
 ```
 
@@ -225,7 +225,40 @@ write.csv(x=final_df, file="~/Analysis/Immune/iHUMAN_DEG_Aggregate.csv", row.nam
 ```
 
 # 7. Individual Cell Type Metabolic Gene Expression Analysis
-This analysis is slightly different, in that we'll be doing the following to **get differentially expressed metabolic genes for individual cells:**
+This analysis is slightly different, in that we'll be doing the following to **get differentially expressed metabolic genes for individual cells.**
+
+## Without Data Imputation
+First, let's try this kind of analysis without data imputation methods. We'll do that by computing gene-wise Z-scores and computing a p-value associated with the Z-scores from a Normal distribution.
+
+Specifically, we'll perform the following steps:
+
+  1. Grab count matrices corresponding to individual cell types.
+  2. Compute gene-wise Z-scores for each cell type and each time point.
+  3. Compute corresponding P-values for each data matrix.
+  4. Perform BH correction.
+  5. Resize the matrix
+  6. Re-map to metabolic genes
+
+```{r}
+install.packages('phateR')
+library(phateR)
+library(Matrix)
+reticulate::conda_remove("r-reticulate")
+reticulate::py_discover_config(required_module = "phate")
+
+for(i in 1:length(celltype.list)){
+  tmp = as.matrix(celltype.list[[i]]@assays$RNA@counts)
+  tmp = phateR::phate(tmp)
+  tmp = apply(tmp, 1, scale)
+  
+  # Map to metabolic genes
+  mapped_0007[[i]] = getMetabolicGenes(t0007_de[[i]], metabolic_map)
+  mapped_0714[[i]] = getMetabolicGenes(t0714_de[[i]], metabolic_map)
+  mapped_1421[[i]] = getMetabolicGenes(t1421_de[[i]], metabolic_map)
+}
+```
+
+## With Data Imputation
 
   1. Use MAGIC to perform data imputation for dropped out cells
   2. Compute Z-scores and corresponding p-values for each gene across each cell.

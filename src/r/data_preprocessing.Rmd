@@ -1,0 +1,89 @@
+---
+title: "Immune cell data preprocessing"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+This notebook performs data preprocessing on the initial seurat object. 
+
+# 1. Load libraries
+```{r}
+library(mgcv)
+library(splines)
+library(Seurat)
+library(tidyverse)
+library(viridis)
+library(matrixStats)
+library(UpSetR)
+library(reshape2)
+library(ggplot2)
+library(phateR)
+library(reticulate)
+install.packages('readxl')
+library(readxl)
+```
+
+# Data Preprocessing Procedure
+This code block does the following with the lung dataset:
+  1. Log normalized.
+  2
+```{r}
+lung = NormalizeData(lung, normalization.method='LogNormalize', scale.factor=10000)
+all.genes = rownames(lung)
+lung = ScaleData(lung, features = all.genes)
+lung = FindNeighbors(lung, dims = 1:10)
+lung = FindClusters(lung, resolution = 0.5)
+lung = RunUMAP(lung, dims = 1:10)
+DimPlot(lung, reduction="umap")
+```
+
+This list of metabolic genes was taken from Leone & Powell, 2020; Table 2. These metabolic genes are currently putative drug targets in various clinical trial phases.
+```{r}
+# Glycolysis
+VlnPlot(lung, features=c('Ldha', 'Glut1', 'Hk1', 
+                         'Pfkfb3', 'Gapdh', 'Pdhk1',
+                         'Hif1a'))
+
+# FAO
+VlnPlot(lung, features=c('Cpt1a', 'Cd36'))# +
+  #labs(title="Fatty Acid Oxidation")
+
+# FAS
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# Cholesterol esterification
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# OXPHOS
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# One-carbon metabolism
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# ROS metabolism
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# Pentose Phosphate Pathway
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# Amino acid metabolism
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+```

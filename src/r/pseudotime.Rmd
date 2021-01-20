@@ -1,0 +1,84 @@
+---
+title: "Immune cell pseudotime analysis"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+This notebook performs differential gene expression analysis across all cell types. Additionally, it extracts metabolic genes corresponding to a metabolic reconstruction.
+
+# 1. Load libraries
+```{r}
+install.packages(c("mgcv", "splines", "Seurat", "tidyverse", 
+                   "viridis", "matrixStats", "UpSetR", 
+                   "reshape2", "ggplot2", "phateR"), dependencies=TRUE)
+
+library(mgcv)
+library(splines)
+library(Seurat)
+library(tidyverse)
+library(viridis)
+library(matrixStats)
+library(UpSetR)
+library(reshape2)
+library(ggplot2)
+library(phateR)
+library(reticulate)
+#install.packages('readxl')
+library(readxl)
+
+# Monocle3 is still in beta
+#BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
+#                       'limma', 'S4Vectors', 'SingleCellExperiment',
+#                       'SummarizedExperiment', 'batchelor', 'Matrix.utils'))
+#install.packages("devtools")
+#library(devtools)
+#devtools::install_github('cole-trapnell-lab/leidenbase')
+#devtools::install_github('cole-trapnell-lab/monocle3')
+
+#remotes::install_github('satijalab/seurat-wrappers')
+
+library(SeuratWrappers)
+library(monocle3)
+library(Matrix)
+```
+
+# 2. Building Trajectories
+```{r}
+tmp = as.cell_data_set(lung)
+tmp = align_cds(tmp, alignment_group="batch")
+tmp = reduce_dimension(cds=tmp, reduction_method='UMAP')
+tmp = cluster_cells(cds=tmp, reduction_method='UMAP')
+tmp = learn_graph(tmp, use_partition=TRUE)
+tmp = order_cells(tmp, reduction_method="UMAP")
+```
+
+```{r}
+# a helper function to identify the root principal points:
+get_earliest_principal_node = function(cds, time_bin="130-170"){
+  cell_ids = which(colData(cds)[, "embryo.time.bin"] == time_bin)
+  
+  closest_vertex =
+  cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex = as.matrix(closest_vertex[colnames(cds), ])
+  root_pr_nodes =
+  igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names
+  (which.max(table(closest_vertex[cell_ids,]))))]
+  
+  root_pr_nodes
+}
+tmp = order_cells(tmp, root_pr_nodes=get_earliest_principal_node(tmp))
+```
+
+```{r}
+plot_cells(
+  cds = tmp,
+  color_cells_by = "pseudotime",
+  show_trajectory_graph = TRUE,
+)
+
+FeaturePlot(tmp, c("lung.h.d21_CGACTGTAAAAC"))
+```

@@ -1,0 +1,222 @@
+---
+title: "Immune cell exploratory data analysis (metabolic genes)"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+This notebook performs data preprocessing on the initial seurat object. 
+
+# 1. Load libraries
+```{r}
+library(mgcv)
+library(splines)
+library(Seurat)
+library(tidyverse)
+library(viridis)
+library(matrixStats)
+library(UpSetR)
+library(reshape2)
+library(ggplot2)
+library(phateR)
+library(reticulate)
+#install.packages('readxl')
+library(readxl)
+
+install.packages('sctransform')
+library(sctransform)
+```
+
+# 2. Load the data
+This code block does the following with the lung dataset:
+
+  1. Log normalized.
+  2. Scaling the data based on genes
+  3. Get the Shared Nearest Neighbors. I'm using the default setting of 1:10, **but this can be optimized further.** 
+  4. Identify clusters of cells by Shared Nearest Neighbors. Again, **the parameters can be optimized further.** 
+  5. Run Uniform Manifold Approximation and Projection. Again, **the parameters can be optimized further.** 
+  
+Note that there were cell-type annotations in the meta data. I used those for visualization.
+```{r}
+rm(list=ls())
+
+# Single cell dataset
+load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+orig.ident = lung@active.ident
+```
+
+To filter the data, we will use the iHUMAN metabolic reconstruction.
+```{r}
+# iHUMAN reconstruction
+human_map = read_excel("C:/Users/scott/Data/Reconstructions/Human1/Human1_SynGO.xlsx")
+counts_mat = as.data.frame(lung@assays$RNA@counts)
+```
+
+Now, let's get the genes, map it to human identifiers, and map that to iHUMAN.
+```{r}
+# Install necessary libraries
+#install.packages("BiocManager")
+#BiocManager::install("biomaRt")
+library(biomaRt)
+
+# Create the mouse and human database
+human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
+
+# Make a function that maps genes using two reference databases
+convertMouseGeneList = function(gene_obj, db1, db2){
+  orthologs = getLDS(attributes=c("mgi_symbol"), filters="mgi_symbol", 
+                   values=rownames(gene_obj), mart=db2, 
+                   attributesL=c("hgnc_symbol", "entrezgene_id"), martL=db1, 
+                   uniqueRows=TRUE)
+  mapped_gene_obj = merge(orthologs, gene_obj, 
+                          by.x='MGI.symbol', by.y='row.names')
+  return(mapped_gene_obj)
+}
+
+counts_mat = convertMouseGeneList(counts_mat, human, mouse)
+
+getMetabolicGenes = function(df, map){
+  mapped_df = merge(df, map, 
+                    by.x='NCBI.gene..formerly.Entrezgene..ID', by.y='entrezgene')
+  return(mapped_df)
+}
+
+counts_mat = getMetabolicGenes(counts_mat, human_map)
+counts_mat$NCBI.gene..formerly.Entrezgene..ID = NULL
+counts_mat$HGNC.symbol = NULL
+counts_mat = counts_mat[!duplicated(counts_mat$MGI.symbol), ]
+row.names(counts_mat) = counts_mat$MGI.symbol
+counts_mat$MGI.symbol = NULL
+```
+
+# 3. Map to metabolic genes
+```{r}
+counts_mat[is.na(counts_mat)] = 0
+lung_metabolism = CreateSeuratObject(counts=counts_mat)
+lung_metabolism@meta.data = lung@meta.data
+lung_metabolism@active.assay = lung@active.assay
+lung_metabolism@active.ident = lung@active.ident
+```
+
+```{r}
+FeatureScatter(object=lung_metabolism, 
+               feature1="nCount_RNA", 
+               feature2="nFeature_RNA") + 
+  theme_minimal() +
+  labs(x="RNA Counts", 
+       y="Number of Genes", 
+       title="Gene count distribution")
+```
+# 4. Detecting Variable Genes
+We should also visualize variable features. There are 3,000 highly variable genes in this dataset.
+```{r}
+lung_metabolism@assays$RNA@data@x[is.na(lung_metabolism@assays$RNA@data@x)] = 0
+lung_metabolism = FindVariableFeatures(object=lung_metabolism)
+
+head(x=HVFInfo(object=lung_metabolism))
+
+top10 = head(VariableFeatures(lung_metabolism), 20)
+varfeat = VariableFeaturePlot(object=lung_metabolism)
+lbls = LabelPoints(plot=varfeat, 
+                   points=top10, 
+                   repel=TRUE)
+lbls
+```
+```{r}
+VlnPlot(lung_metabolism, 
+        ncol=2)
+```
+
+# 6. Log Normalize and Scale the Data
+Now let's log normalize the data.
+```{r}
+lung_metabolism = NormalizeData(lung_metabolism, 
+                     normalization.method='LogNormalize', 
+                     scale.factor=10000)
+```
+Now let's scale the data.
+```{r}
+all.genes = rownames(lung_metabolism)
+lung_metabolism = ScaleData(lung_metabolism, 
+                 features=all.genes)
+```
+# 7. Run Principle Component Analysis
+
+Now let's run PCA.
+```{r}
+lung_metabolism = RunPCA(object=lung_metabolism,
+              verbose=FALSE)
+```
+
+We can visualize the elbow plot.
+```{r}
+ElbowPlot(lung_metabolism, ndims=100) +
+  theme_minimal() +
+  labs(title="Lung PCA Elbow Plot", 
+       x="Principle Components", 
+       y="Standard deviations")
+```
+
+# 8. Perform some clustering
+```{r}
+lung_metabolism = FindNeighbors(lung_metabolism, 
+                     dims=1:50,
+                     reduction='pca')
+lung_metabolism = FindClusters(lung_metabolism, 
+                    resolution=0.5)
+```
+# 9. Perform UMAP
+```{r}
+lung_metabolism = RunUMAP(lung_metabolism, 
+               dims=1:50)
+```
+
+```{r}
+# Glycolysis
+VlnPlot(lung, features=c('Ldha', 'Glut1', 'Hk1', 
+                         'Pfkfb3', 'Gapdh', 'Pdhk1',
+                         'Hif1a'))
+
+# FAO
+VlnPlot(lung, features=c('Cpt1a', 'Cd36'))# +
+  #labs(title="Fatty Acid Oxidation")
+
+# FAS
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# Cholesterol esterification
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# OXPHOS
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# One-carbon metabolism
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# ROS metabolism
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# Pentose Phosphate Pathway
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+
+# Amino acid metabolism
+VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
+                         'Prkaa2', 'Myc', 'Arg1',
+                         'Hif1a'))
+```

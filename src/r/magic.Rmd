@@ -1,0 +1,77 @@
+---
+title: "MAGIC Imputation"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+This notebook performs MAGIC imputation on the Seurat object. 
+
+# 1. Load libraries
+```{r}
+library(mgcv)
+library(splines)
+library(Seurat)
+library(tidyverse)
+library(viridis)
+library(matrixStats)
+library(UpSetR)
+library(reshape2)
+library(ggplot2)
+library(phateR)
+library(reticulate)
+#install.packages('readxl')
+library(readxl)
+library(Rmagic)
+```
+
+If you need to install MAGIC in R, here are the steps. 
+```{r}
+install.packages('Rmagic')
+install.packages("devtools")
+devtools::install_github("rstudio/reticulate")
+
+library(reticulate)
+py_available(initialize=FALSE)
+use_python('C:/Users/scott/AppData/Local/r-miniconda/envs/r-reticulate/python.exe')
+reticulate::py_config()
+reticulate::py_module_available("magic")
+reticulate::import("magic")
+reticulate::py_install("matplotlib")
+
+py_install('magic-impute')
+py_install('phate')
+reticulate::py_config()
+
+reticulate::py_discover_config("magic-impute")
+reticulate::py_discover_config("phate")
+library(Rmagic)
+library(phateR)
+```
+
+# 2. Load R objects
+```{r}
+rm(list=ls())
+load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+```
+
+Note that we still have to do some data preprocessing prior to running MAGIC. In their tutorial, they did a library normalization with the square root to avoid instabilities at zero. We'll use the preprocessing method done in the Seurat procedure.
+
+```{r}
+lung = NormalizeData(lung, 
+                     normalization.method='LogNormalize', 
+                     scale.factor=10000)
+all.genes = rownames(lung)
+lung = ScaleData(lung, 
+                 features=all.genes)
+```
+
+# 3. Run MAGIC
+Now let's run MAGIC
+
+```{r}
+lung_magic = magic(lung@assays$RNA@scale.data)
+```

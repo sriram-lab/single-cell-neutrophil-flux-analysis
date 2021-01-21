@@ -95,7 +95,7 @@ DimPlot(lung,
 ## UMAP compression
 ```{r}
 # Let's also run UMAP to see if we get better separation
-lung = RunUMAP(lung, dims=1:50, k.nn=13)
+lung = RunUMAP(lung, dims=1:50)
 DimPlot(lung, 
         reduction='umap', 
         pt.size=2) + 

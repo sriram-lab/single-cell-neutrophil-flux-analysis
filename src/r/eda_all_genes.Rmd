@@ -1,5 +1,5 @@
 ---
-title: "Immune cell data preprocessing"
+title: "Immune cell exploratory data analysis (all genes)"
 author: "Scott Campit"
 output: 
   html_notebook:
@@ -257,51 +257,4 @@ lung.markers = FindAllMarkers(lung,
                               logfc.threshold=0.25)
 lung.markers %>% group_by(cluster) %>% top_n(n=2, wt=avg_logFC)
 FeaturePlot(lung, features=as.character(unique(lung.markers$gene)))
-```
-
-This list of metabolic genes was taken from Leone & Powell, 2020; Table 2. These metabolic genes are currently putative drug targets in various clinical trial phases.
-```{r}
-# Glycolysis
-VlnPlot(lung, features=c('Ldha', 'Glut1', 'Hk1', 
-                         'Pfkfb3', 'Gapdh', 'Pdhk1',
-                         'Hif1a'))
-
-# FAO
-VlnPlot(lung, features=c('Cpt1a', 'Cd36'))# +
-  #labs(title="Fatty Acid Oxidation")
-
-# FAS
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# Cholesterol esterification
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# OXPHOS
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# One-carbon metabolism
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# ROS metabolism
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# Pentose Phosphate Pathway
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# Amino acid metabolism
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
 ```

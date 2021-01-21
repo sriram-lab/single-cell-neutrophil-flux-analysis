@@ -1,0 +1,37 @@
+---
+title: "Convert Seurat to Python Object"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+I'm trying to use `phateR`, but keep on running into errors when transforming the data. So, I want to see if the Python package for PHATE is more developed than the R package. To do that, I need to convert the Seurat object to .h5ad.
+
+```{r}
+rm(list=ls())
+library(Seurat)
+library(scater)
+
+install.packages("devtools")
+devtools::install_github(repo="hhoeflin/hdf5r")
+devtools::install_github(repo="mojaveazure/loomR", 
+                         ref="develop")
+library(loomR)
+
+# Load Seurat object as is
+load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+lung.loom = Seurat::as.loom(lung,filename="C:/Users/scott/Data/scRNASeq/shea/lung.loom")
+```
+
+So I tried several ways to import/export the data, but they all kind of suck. So I'm doing it the old school way and saving everything using text and .csv files.
+
+```{r}
+data = lung@assays$RNA@counts
+metadata = data.frame(character(lengthlung@meta.data$phenotype))
+metadata$allcelltype = lung@meta.data$phenotype
+tmp = as.data.frame(lung@active.ident)
+
+```

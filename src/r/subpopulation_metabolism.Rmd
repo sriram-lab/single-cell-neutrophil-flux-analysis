@@ -1,5 +1,5 @@
 ---
-title: "Immune cell dimension reduction"
+title: "Immune cell subpopulation using metabolism data"
 author: "Scott Campit"
 output: 
   html_notebook:
@@ -49,7 +49,8 @@ rm(list=ls())
 #load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 
 # ACLX
-load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+load("C:/Users/scott/Data/scRNASeq/shea/lung_human.robj", verbose=TRUE)
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 
 # Linux
 #load("~/Data/scRNASeq/shea/lung.Robj")
@@ -64,8 +65,11 @@ We'll first split the data to be separate lineages. I will analyze 4 specificall
   4. Granulocytes
   
 ```{r}
-orig.indent = lung@active.ident
-celltype.list = SplitObject(lung, split.by="CellType")
+#orig.indent = lung_metabolism@active.ident
+#lung_metabolism@meta.data$CellType = orig.indent
+lung_metabolism@active.ident = lung_metabolism@meta.data$CellType
+Idents(lung_metabolism) = lung_metabolism@meta.data$CellType
+celltype.list = SplitObject(lung_metabolism, split.by="ident")
 
 # Create separate Seurat objects to visualize.
 neutrophils   = celltype.list$Neutrophils
@@ -128,7 +132,7 @@ find_subpopulations = function(gene_obj){
 
 # 4. Perform subsetting on Neutrophils
 This analysis subsets based on predicted clusters.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 neutrophils = find_subpopulations(neutrophils)
 
 # Plot based on predicted clusters
@@ -152,7 +156,7 @@ DimPlot(neutrophils,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -164,11 +168,25 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(neutrophils, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(neutrophils, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
 Let's also visualize based on time.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 # Create color scheme by changing Identifier
 expt = neutrophils@meta.data["Experiment"]
 expt = as.character(expt$Experiment)
@@ -196,7 +214,7 @@ DimPlot(neutrophils,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -208,12 +226,26 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(neutrophils, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(neutrophils, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
 # 5. Perform subsetting on NK Cells
 This analysis subsets based on predicted clusters and time.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 nk = find_subpopulations(nk)
 
 # Plot based on predicted clusters
@@ -237,7 +269,7 @@ DimPlot(nk,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(nk,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -249,10 +281,24 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(nk, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(nk, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 # Create color scheme by changing Identifier
 expt = nk@meta.data["Experiment"]
 expt = as.character(expt$Experiment)
@@ -279,7 +325,7 @@ DimPlot(nk,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(nk,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -291,12 +337,26 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(nk, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(nk, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
 # 6. Perform subsetting on T Cells
 This analysis subsets based on predicted clusters and time.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 tcell = find_subpopulations(tcell)
 
 # Plot based on predicted clusters
@@ -320,7 +380,7 @@ DimPlot(tcell,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(tcell,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -332,10 +392,24 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(tcell, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(tcell, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 # Create color scheme by changing Identifier
 expt = tcell@meta.data["Experiment"]
 expt = as.character(expt$Experiment)
@@ -362,7 +436,7 @@ DimPlot(tcell,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(tcell,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -374,11 +448,25 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(tcell, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(tcell, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
 # 7. Perform subsetting on Granulocytes
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 gran = find_subpopulations(gran)
 
 # Plot based on predicted clusters
@@ -402,7 +490,7 @@ DimPlot(gran,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 markers = FindAllMarkers(gran,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -414,10 +502,24 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(gran, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(gran, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
-```{r}
+```{r, fig.width = 12, fig.height = 12}
 # Create color scheme by changing Identifier
 expt = gran@meta.data["Experiment"]
 expt = as.character(expt$Experiment)
@@ -444,7 +546,8 @@ DimPlot(gran,
 ```
 
 We should also report the biomarkers.
-```{r}
+```{r, fig.width = 12, fig.height = 12}
+
 markers = FindAllMarkers(gran,
                          only.pos=TRUE,
                          min.pct = 0.25,
@@ -456,7 +559,21 @@ markers %>%
 
 # Create the heatmap of top markers
 DoHeatmap(gran, 
-          features=markers$gene)
+          features=markers$gene,
+          label=FALSE)
+
+top5 = markers %>% 
+          group_by(cluster) %>% 
+          top_n(n=5, 
+                wt=avg_logFC)
+
+# Feature plots
+FeaturePlot(gran, 
+            features=top5$gene,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            ncol=5)
 ```
 
 # 8. Conclusions

@@ -26,7 +26,7 @@ library(reticulate)
 #install.packages('readxl')
 library(readxl)
 
-install.packages('sctransform')
+#install.packages('sctransform')
 library(sctransform)
 ```
 
@@ -96,10 +96,15 @@ counts_mat$MGI.symbol = NULL
 # 3. Map to metabolic genes
 ```{r}
 counts_mat[is.na(counts_mat)] = 0
-lung_metabolism = CreateSeuratObject(counts=counts_mat)
+lung_metabolism = CreateSeuratObject(counts=counts_mat,
+                                     min.cells=3,
+                                     min.features=20)
 lung_metabolism@meta.data = lung@meta.data
-lung_metabolism@active.assay = lung@active.assay
 lung_metabolism@active.ident = lung@active.ident
+lung_metabolism@assays$RNA@data@x[is.na(lung_metabolism@assays$RNA@data@x)] = 0
+orig.ident = lung_metabolism@active.ident
+save(lung_metabolism, file="C:/Users/scott/Data/scRNASeq/shea/lung_human.robj")
+
 ```
 
 ```{r}
@@ -111,26 +116,18 @@ FeatureScatter(object=lung_metabolism,
        y="Number of Genes", 
        title="Gene count distribution")
 ```
-# 4. Detecting Variable Genes
-We should also visualize variable features. There are 3,000 highly variable genes in this dataset.
+## 5. Eliminating confounding factors
+First, we need to identify mitochondrial genes that may be confounding factors (based on the experimental design). We'll also normalize based on this known confounding factor.
+
+Note - these need to be identified using Mitocarta.
 ```{r}
-lung_metabolism@assays$RNA@data@x[is.na(lung_metabolism@assays$RNA@data@x)] = 0
-lung_metabolism = FindVariableFeatures(object=lung_metabolism)
-
-head(x=HVFInfo(object=lung_metabolism))
-
-top10 = head(VariableFeatures(lung_metabolism), 20)
-varfeat = VariableFeaturePlot(object=lung_metabolism)
-lbls = LabelPoints(plot=varfeat, 
-                   points=top10, 
-                   repel=TRUE)
-lbls
+#lung = PercentageFeatureSet(lung_metabolism, 
+#                            pattern = "^mt-", 
+#                            col.name = "percent.mt")
+#lung = SCTransform(lung_metabolism,
+#                    vars.to.regress="percent.mt", 
+#                    verbose=FALSE)
 ```
-```{r}
-VlnPlot(lung_metabolism, 
-        ncol=2)
-```
-
 # 6. Log Normalize and Scale the Data
 Now let's log normalize the data.
 ```{r}
@@ -144,6 +141,23 @@ all.genes = rownames(lung_metabolism)
 lung_metabolism = ScaleData(lung_metabolism, 
                  features=all.genes)
 ```
+
+# 4. Detecting Variable Genes
+We should also visualize variable features. There are 3,000 highly variable genes in this dataset.
+```{r}
+lung_metabolism = FindVariableFeatures(object=lung_metabolism)
+
+head(x=HVFInfo(object=lung_metabolism))
+
+top10 = head(VariableFeatures(lung_metabolism), 10)
+varfeat = VariableFeaturePlot(object=lung_metabolism)
+lbls = LabelPoints(plot=varfeat, 
+                   points=top10, 
+                   repel=TRUE)
+lbls
+```
+
+
 # 7. Run Principle Component Analysis
 
 Now let's run PCA.
@@ -175,48 +189,63 @@ lung_metabolism = RunUMAP(lung_metabolism,
                dims=1:50)
 ```
 
+
+# 10. Visualize data with original labels
+This gets us to the visualization! Let's create the DimPlot() with the original labels.
 ```{r}
-# Glycolysis
-VlnPlot(lung, features=c('Ldha', 'Glut1', 'Hk1', 
-                         'Pfkfb3', 'Gapdh', 'Pdhk1',
-                         'Hif1a'))
+lung_metabolism@active.ident=orig.ident
+DimPlot(lung_metabolism, 
+        reduction="umap",
+        dims=c(1, 2),
+        label=TRUE,
+        repel=TRUE,
+        label.size=4,
+        na.value = "grey50") +
+  NoLegend() +
+  labs(x="UMAP 1", y="UMAP 2", title="Lung metabolism UMAP embedding")
+```
+```{r}
+FeaturePlot(lung_metabolism, 
+            features="Ldha",
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
 
-# FAO
-VlnPlot(lung, features=c('Cpt1a', 'Cd36'))# +
-  #labs(title="Fatty Acid Oxidation")
+Find markers
+```{r}
+markers = FindAllMarkers(lung_metabolism,
+                         only.pos=TRUE,
+                         min.pct = 0.25,
+                         logfc.threshold=0.25)
+markers %>% 
+  group_by(cluster) %>% 
+  top_n(n=2, 
+        wt=avg_logFC)
+```
 
-# FAS
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
+## Neutrophil-specific markers against all cell types.
+```{r}
+neutrophil_markers = markers[markers$cluster=='Neutrophils',]
+FeaturePlot(lung_metabolism, 
+            features=as.character(neutrophil_markers$gene[1:10]),
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
 
-# Cholesterol esterification
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
+tmp = neutrophil_markers$gene
+```
 
-# OXPHOS
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
+Create a Heatmap of the top 20 markers for each cluster
+```{r}
+# Get top genes in all clusters
+top10 = markers %>% 
+  group_by(cluster) %>% 
+  top_n(n=5, 
+        wt=avg_logFC)
 
-# One-carbon metabolism
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# ROS metabolism
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# Pentose Phosphate Pathway
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
-
-# Amino acid metabolism
-VlnPlot(lung, features=c('Ldha', 'Ido1', 'Prkaa1', 
-                         'Prkaa2', 'Myc', 'Arg1',
-                         'Hif1a'))
+# Create the heatmap of top markers
+DoHeatmap(lung_metabolism, 
+          features=top10$gene,
+          label=FALSE)
 ```

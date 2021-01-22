@@ -12,9 +12,9 @@ This notebook performs differential gene expression analysis across all cell typ
 
 # 1. Load libraries
 ```{r}
-install.packages(c("mgcv", "splines", "Seurat", "tidyverse", 
-                   "viridis", "matrixStats", "UpSetR", 
-                   "reshape2", "ggplot2", "phateR"), dependencies=TRUE)
+#install.packages(c("mgcv", "splines", "Seurat", "tidyverse", 
+#                   "viridis", "matrixStats", "UpSetR", 
+#                   "reshape2", "ggplot2", "phateR"), dependencies=TRUE)
 
 library(mgcv)
 library(splines)
@@ -47,9 +47,57 @@ library(Matrix)
 ```
 
 # 2. Set up data objects for Monocle
+
 We need to transform the Seurat object to a Cell Data Set, that can be used for Monocle and other packages.
 ```{r}
-tmp = as.cell_data_set(lung)
+rm(list=ls())
+load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+dat = as.matrix(lung@assays$RNA@data)
+cell_metadata = data.frame(lung@active.ident)
+lung_cds = new_cell_data_set(dat, 
+                             cell_metadata=cell_metadata)
+#lung_cds$cell.type = cell_metadata
+```
+
+```{r}
+lung_cds = preprocess_cds(lung_cds, num_dim=50)
+lung_cds = reduce_dimension(lung_cds, reduction_method='PCA')
+lung_cds = reduce_dimension(lung_cds, reduction_method='UMAP')
+lung_cds = cluster_cells(lung_cds, resolution=1e-5)
+plot_cells(lung_cds, color_cells_by="partition")
+lung_cds = learn_graph(lung_cds)
+plot_cells(lung_cds,
+           color_cells_by = "partition",
+           label_groups_by_cluster=TRUE,
+           label_leaves=FALSE,
+           label_branch_points=FALSE)
+
+g1 ="Ldha"
+ldha_cds = lung_cds[rowData(lung_cds)$gene_short_name %in% g1]
+ldha_cds = learn_graph(ldha_cds)
+```
+
+```{r}
+# a helper function to identify the root principal points:
+get_earliest_principal_node <- function(cds, time_bin="130-170"){
+  cell_ids <- which(colData(cds)[, "embryo.time.bin"] == time_bin)
+  
+  closest_vertex <-
+  cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex <- as.matrix(closest_vertex[colnames(cds), ])
+  root_pr_nodes <-
+  igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names
+  (which.max(table(closest_vertex[cell_ids,]))))]
+  
+  root_pr_nodes
+}
+ldha_cds <- order_cells(ldha_cds, root_pr_nodes=get_earliest_principal_node(ldha_cds))
+```
+
+```{r}
+ldha_cds = order_cells(ldha_cds)
+plot_genes_in_pseudotime(ldha_cds,
+                         min_expr=0.5)
 ```
 
 # 3. Correct for batch effects

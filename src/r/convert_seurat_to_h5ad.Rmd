@@ -20,11 +20,13 @@ library(tidyverse)
 #devtools::install_github(repo="hhoeflin/hdf5r")
 #devtools::install_github(repo="mojaveazure/loomR", 
 #                         ref="develop")
-library(loomR)
+#library(loomR)
 ```
 
 # 1. Save Entire Data As loom File
 ```{r}
+rm(list=ls())
+
 # Load Seurat object as is
 load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 lung.loom = Seurat::as.loom(lung,filename="C:/Users/scott/Data/scRNASeq/shea/lung.loom")
@@ -33,6 +35,8 @@ lung.loom = Seurat::as.loom(lung,filename="C:/Users/scott/Data/scRNASeq/shea/lun
 # 2. Save Entire Dataset as .csv Files
 Now we'll save the count data, the gene symbols, and the cell type as several csv files.
 ```{r}
+rm(list=ls())
+
 load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 
 # Count data
@@ -56,5 +60,40 @@ write_delim(x=active_indent,
             file="C:/Users/scott/Data/scRNASeq/shea/active_ident.csv",
             delim=',')
 ```
-# 3. Save Subsets as Separate .csv Files
-To perform data imputation and to save on memory, let's separate the data.
+
+# 3. Save Subsets as Separate Sheets in an Excel file
+To perform data imputation and to save on memory, let's separate the data by cell types.
+```{r}
+rm(list=ls())
+
+load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+celltype.list = SplitObject(lung, split.by="CellType")
+
+data = list()
+for(i in 1:length(celltype.list)){
+  tmp = data.frame(celltype.list[[i]]@assays$RNA@counts)
+  colnames(tmp) = celltype.list[[i]]@meta.data$EVERYTHING
+  tmp$Symbol = rownames(tmp)
+  data[[i]] = tmp
+}
+```
+
+Save all.
+```{r}
+#install.packages('writexl')
+writexl::write_xlsx(
+  x=list(Stromal           = data[[1]],
+       AlveolarMacrophages = data[[2]],
+       Macrophages         = data[[3]],
+       Monocytes           = data[[4]],
+       Pneumocytes         = data[[5]],
+       Bcells              = data[[6]],
+       Granulocytes        = data[[7]],
+       Tcells              = data[[8]],
+       Dendritic           = data[[9]],
+       Neutrophils         = data[[10]],
+       NK                  = data[[11]],
+       Endothelial         = data[[12]],
+       HSC                 = data[[13]]),
+  path="C:/Users/scott/Data/scRNASeq/shea/celldf.xlsx")
+```

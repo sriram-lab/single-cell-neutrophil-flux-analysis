@@ -13,6 +13,7 @@ I'm trying to use `phateR`, but keep on running into errors when transforming th
 ```{r}
 rm(list=ls())
 library(Seurat)
+library(ggplot2)
 library(scater)
 library(tidyverse)
 
@@ -66,14 +67,48 @@ To perform data imputation and to save on memory, let's separate the data by cel
 ```{r}
 rm(list=ls())
 
-load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
-celltype.list = SplitObject(lung, split.by="CellType")
+# ACLX
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+# Dell
+load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 
+celltype.list = SplitObject(lung, split.by="CellType")
+```
+
+```{r}
+# Make a function that maps genes using two reference databases
+convertMouseGeneList = function(gene_obj, db1, db2){
+  orthologs = getLDS(attributes=c("mgi_symbol"), filters="mgi_symbol", 
+                   values=rownames(gene_obj), mart=db2, 
+                   attributesL=c("hgnc_symbol", 
+                                 "entrezgene_id", 
+                                 "ensembl_gene_id"), martL=db1, 
+                   uniqueRows=TRUE)
+  mapped_gene_obj = merge(orthologs, gene_obj, 
+                          by.x='MGI.symbol', by.y='row.names')
+  return(mapped_gene_obj)
+}
+```
+
+```{r}
+install.packages('BiocManager')
+BiocManager::install("biomaRt", 
+                     dependencies=TRUE,
+                     INSTALL_opts='--no-lock')
+library(biomaRt)
+
+# Create the mouse and human database
+human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
+```
+
+```{r}
 data = list()
 for(i in 1:length(celltype.list)){
   tmp = data.frame(celltype.list[[i]]@assays$RNA@counts)
   colnames(tmp) = celltype.list[[i]]@meta.data$EVERYTHING
-  tmp$Symbol = rownames(tmp)
+  tmp = convertMouseGeneList(tmp, human, mouse)
+  tmp$Ensembl = tmp$Gene.stable.ID
   data[[i]] = tmp
 }
 ```
@@ -95,5 +130,7 @@ writexl::write_xlsx(
        NK                  = data[[11]],
        Endothelial         = data[[12]],
        HSC                 = data[[13]]),
-  path="C:/Users/scott/Data/scRNASeq/shea/celldf.xlsx")
+  path="D:/Data/scRNASeq/shea/celldf_ensembl.xlsx")
+#path="C:/Users/scott/Data/scRNASeq/shea/celldf.xlsx")
+
 ```

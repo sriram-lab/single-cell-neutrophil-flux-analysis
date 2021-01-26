@@ -35,9 +35,9 @@ library(readxl)
 #                       'limma', 'S4Vectors', 'SingleCellExperiment',
 #                       'SummarizedExperiment', 'batchelor', 'Matrix.utils'))
 #install.packages("devtools")
-#library(devtools)
+library(devtools)
 #devtools::install_github('cole-trapnell-lab/leidenbase')
-#devtools::install_github('cole-trapnell-lab/monocle3')
+devtools::install_github('cole-trapnell-lab/monocle3')
 
 #remotes::install_github('satijalab/seurat-wrappers')
 
@@ -51,7 +51,16 @@ library(Matrix)
 We need to transform the Seurat object to a Cell Data Set, that can be used for Monocle and other packages.
 ```{r}
 rm(list=ls())
+
+# ACLX
 load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# Linux
+load("~/Data/scRNASeq/shea/lung.Robj")
+```
+
+Let's load it up as a cds.
+```{r}
 dat = as.matrix(lung@assays$RNA@data)
 cell_metadata = data.frame(lung@active.ident)
 lung_cds = new_cell_data_set(dat, 

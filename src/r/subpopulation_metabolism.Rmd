@@ -48,14 +48,13 @@ rm(list=ls())
 
 # Load the data
 # Dell
-#load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+load("D:/Data/scRNASeq/shea/lung_human.robj", verbose=TRUE)
 
 # ACLX
-load("C:/Users/scott/Data/scRNASeq/shea/lung_human.robj", verbose=TRUE)
-#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+#load("C:/Users/scott/Data/scRNASeq/shea/lung_human.robj", verbose=TRUE)
 
 # Linux
-#load("~/Data/scRNASeq/shea/lung.Robj")
+#load("~/Data/scRNASeq/shea/lung_human.robj")
 #unique(neutrophils@meta.data[["CellType"]])
 ```
 

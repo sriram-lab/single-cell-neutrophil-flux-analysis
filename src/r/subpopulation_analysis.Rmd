@@ -141,7 +141,7 @@ DimPlot(neutrophils,
         na.value = "grey50") + 
         labs(x="UMAP 1", y="UMAP 2", title="Neutrophil UMAP compression") +
         theme_minimal() +
-        theme(plot.title = element_text(size=30),
+        theme(plot.title = element_text(size=25),
               legend.text=element_text(size=20),
               axis.title.x=element_text(size=20),
               axis.title.y=element_text(size=20),
@@ -166,6 +166,11 @@ top5 = markers %>%
 DoHeatmap(neutrophils, 
           features=top5$gene)
 ```
+Let's report GO enrichment
+```{r}
+BiocManager::install("clusterProfiler")
+
+```
 
 Let's also visualize based on time.
 ```{r}
@@ -187,7 +192,7 @@ DimPlot(neutrophils,
         na.value = "grey50") + 
         labs(x="UMAP 1", y="UMAP 2", title="Neutrophil UMAP compression") +
         theme_minimal() +
-        theme(plot.title = element_text(size=30),
+        theme(plot.title = element_text(size=25),
               legend.text=element_text(size=20),
               axis.title.x=element_text(size=20),
               axis.title.y=element_text(size=20),
@@ -203,14 +208,15 @@ markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
                          min.pct=0.25,
                          logfc.threshold=0.25)
-markers %>% 
+
+top5 = markers %>% 
   group_by(cluster) %>% 
-  top_n(n=5, 
+  top_n(n=20, 
         wt=avg_logFC)
 
 # Create the heatmap of top markers
 DoHeatmap(neutrophils, 
-          features=markers$gene)
+          features=top5$gene)
 ```
 
 # 5. Perform subsetting on NK Cells

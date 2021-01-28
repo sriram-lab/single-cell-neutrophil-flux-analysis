@@ -157,14 +157,14 @@ markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
                          min.pct = 0.25,
                          logfc.threshold=0.25)
-markers %>% 
+top5 = markers %>% 
   group_by(cluster) %>% 
   top_n(n=5, 
         wt=avg_logFC)
 
 # Create the heatmap of top markers
 DoHeatmap(neutrophils, 
-          features=markers$gene)
+          features=top5$gene)
 ```
 
 Let's also visualize based on time.
@@ -174,7 +174,9 @@ expt = neutrophils@meta.data["Experiment"]
 expt = as.character(expt$Experiment)
 neutrophils = SetIdent(obj=neutrophils, 
                        value=expt)
+```
 
+```{r}
 # Plot based on time-course
 DimPlot(neutrophils, 
         reduction="umap",
@@ -199,7 +201,7 @@ We should also report the biomarkers.
 ```{r}
 markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
-                         min.pct = 0.25,
+                         min.pct=0.25,
                          logfc.threshold=0.25)
 markers %>% 
   group_by(cluster) %>% 

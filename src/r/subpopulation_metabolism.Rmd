@@ -10,9 +10,9 @@ output:
 # Summary
 **This analysis contains 3 time points:**
 
-  1. *Day 7*:  Pre-metastatic niche - tumor cells have not arrived
-  2. *Day 14*: Metastatic niche - tumor cells arrived but no proliferation
-  3. *Day 21*: Metabstatic niche - secondary tumors in lung 
+  1. *Day 7*:  Pre-metastatic niche - tumor cells have not arrived.
+  2. *Day 14*: Metastatic niche - tumor cells arrived but no proliferation.
+  3. *Day 21*: Metabstatic niche - secondary tumors in lung. 
 
 **The driving questions are the following:**
 
@@ -28,6 +28,7 @@ First, we'll load the libraries and dataset we'll need to analyze the data.
 #install.packages(c("mgcv", "splines", "Seurat", "tidyverse", 
 #                   "viridis", "matrixStats", "UpSetR", 
 #                   "reshape2", "ggplot2", "phateR"))
+
 library(mgcv)
 library(splines)
 library(Seurat)
@@ -44,6 +45,7 @@ library(reticulate)
 
 ```{r}
 rm(list=ls())
+
 # Load the data
 # Dell
 #load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)

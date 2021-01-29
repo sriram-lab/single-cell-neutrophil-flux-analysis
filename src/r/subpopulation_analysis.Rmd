@@ -168,7 +168,7 @@ DoHeatmap(neutrophils,
 ```
 
 
-## All clusters:
+## All clusters
 ```{r}
 FeaturePlot(neutrophils, 
             features=c("Saa3", "B2m", "Fpr2", "Ltf", "Hbb-bt"),
@@ -218,7 +218,7 @@ Lyz2: Neutrophil marker
 Plek: NaN
 
 
-```{r}
+```{r, fig.height=12}
 neutrophil_c1 = markers[markers$cluster==1 & markers$pct.1 > 0.55 & markers$pct.2 < 0.45,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c1,
@@ -277,7 +277,7 @@ Cd177: Highly expressed in CRC and UC-associated cancers
   
 Ckap4: NaN
 
-```{r}
+```{r,fig.height=12}
 neutrophil_c3 = markers[markers$cluster==3 & markers$pct.1 > 0.75 & markers$pct.2 < 0.25,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c3,
@@ -344,6 +344,11 @@ DoHeatmap(neutrophils,
           features=top5$gene)
 
 ```
+
+# Perform subpopulation analysis on metabolic subset
+
+## Create function to get metabolic subset
+This function grabs metabolic genes using Entrez IDs
 ```{r}
 getMetabolicGenes = function(df, map){
   mapped_df = merge(df, map, 
@@ -352,18 +357,19 @@ getMetabolicGenes = function(df, map){
 }
 ```
 
+## Create library to map human and mouse genes
 Now, let's get the genes, map it to human identifiers, and map that to iHUMAN.
 ```{r}
 # Install necessary libraries
-install.packages("BiocManager")
-BiocManager::install("biomaRt")
+#install.packages("BiocManager")
+#BiocManager::install("biomaRt")
 library(biomaRt)
 
 # Create the mouse and human database
 human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
 mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
 ```
-
+## Map human and mouse genes
 Create a function that maps MGI gene symbols to HGNC gene symbols and Entrez IDs.
 ```{r}
 # Make a function that maps genes using two reference databases
@@ -378,24 +384,25 @@ convertMouseGeneList = function(gene_obj, db1, db2){
 }
 ```
 
+## Grab metabolic genes that are signficant and map to human genes.
 Now let's get our count matrix and perform this mapping.
 ```{r}
+# Convert mouse to human genes
 neutrophil_metab_mat = convertMouseGeneList(markers, human, mouse)
-```
 
-Let's grab the metabolic subset for the markers.
-```{r}
 # iHUMAN reconstruction
-human_map = read_excel("D:/Data/Reconstructions/Human1/Human1_SynGO.xlsx")
-```
+human_map = readxl::read_excel("D:/Data/Reconstructions/Human1/Human1_SynGO.xlsx")
 
-```{r}
+# Grab metabolic genes
 neutrophil_metab_mat = getMetabolicGenes(neutrophil_metab_mat, human_map)
 ```
 
+# Analyze metabolic genes in clusters
 ## Cluster 0
 ```{r}
-neutrophil_c0 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==0 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+neutrophil_c0 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==0 & 
+                                       markers$pct.1 > 0.5 & 
+                                       markers$pct.2 < 0.5,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c0,
             label=TRUE,
@@ -429,16 +436,6 @@ FeaturePlot(neutrophils,
             repel=TRUE,
             label.size=4)
 ```
-## Cluster 4
-```{r}
-neutrophil_c4 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==4 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
-FeaturePlot(neutrophils, 
-            features=neutrophil_c4,
-            label=TRUE,
-            repel=TRUE,
-            label.size=4)
-```
-
 
 # 5. Perform subsetting on NK Cells
 This analysis subsets based on predicted clusters and time.

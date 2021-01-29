@@ -1,0 +1,123 @@
+---
+title: "Cluster identification"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+This notebook analyzes the metabolic genes in the context of GO annotations and Reactome metabolic pathways.
+
+# Load libraries
+```{r}
+#BiocManager::install("DOSE")
+#BiocManager::install("enrichplot")
+#BiocManager::install("ReactomePA")
+#BiocManager::install("org.Hs.eg.db")
+#BiocManager::install("org.Mm.eg.db")
+#BiocManager::install("topGO")
+#BiocManager::install("Rgraphviz")
+BiocManager::install('ReactomeGSA')
+library(DOSE)
+#library(enrichplot)
+library(ReactomePA)
+library(org.Hs.eg.db)
+library(topGO)
+library(org.Mm.eg.db)
+library(Rgraphviz)
+library(ReactomeGSA)
+```
+
+# Analyze Enriched Reactome Metabolic Pathways
+
+## Overrepresentation analysis
+Now, let's get the enriched metabolic pathways.
+```{r}
+gsva_result = analyse_sc_clusters(neutrophils, 
+                                  verbose=TRUE)
+pathway_expression = pathways(gsva_result)
+
+# find the maximum differently expressed pathway
+max_difference = do.call(rbind, apply(pathway_expression, 1, function(row) {
+    values = as.numeric(row[2:length(row)])
+    return(data.frame(name = row[1], min = min(values), max = max(values)))
+}))
+
+max_difference$diff = max_difference$max - max_difference$min
+
+# sort based on the difference
+max_difference <- max_difference[order(max_difference$diff, decreasing = T), ]
+
+head(max_difference)
+plot_gsva_pathway(gsva_result, pathway_id = rownames(max_difference)[2])
+plot_gsva_heatmap(gsva_result, max_pathways = 15, margins = c(6,20))
+```
+
+
+```{r}
+enriched_go = enrichPathway(gene=neutrophils@assays$RNA@data, 
+                            organism='mmu',
+                            pvalueCutoff=0.05, 
+                            readable=TRUE)
+```
+
+### Gene Set Enrichment Analysis (GSEA)
+This performs GSEA on the data matrix.
+```{r}
+tmp2 = gsePathway(tmp@gene, 
+                pvalueCutoff = 0.2,
+                pAdjustMethod = "BH", 
+                verbose = FALSE)
+```
+
+### Visualize some of the Reactome metabolic pathways
+```{r}
+viewPathway("The citric acid (TCA) cycle and respiratory electron transport",
+            readable=TRUE,
+            foldChange=tmp@gene2Symbol)
+```
+
+## GO Enrichment Analysis
+```{r}
+# Get gene object
+cluster0 = SubsetData(neutrophils, ident.use=0)
+expr = cluster0@assays$RNA@data
+
+# Select genes that are expressed > 0 in at least 75% of cells (somewhat arbitrary definition)
+n.gt.0 = apply(expr, 1, function(x)length(which(x > 0)))
+expressed.genes = rownames(expr)[which(n.gt.0/ncol(expr) >= 0.75)]
+all.genes = rownames(expr)
+
+# define geneList as 1 if gene is in expressed.genes, 0 otherwise
+geneList = ifelse(all.genes %in% expressed.genes, 1, 0)
+names(geneList) = all.genes
+
+GOdata = new("topGOdata",
+		ontology="BP", 
+		allGenes=geneList,
+		geneSelectionFun=function(x)(x == 1),
+    annot=annFUN.org, 
+    mapping ="org.Mm.eg.db", 
+		ID="symbol")
+
+resultFisher = runTest(GOdata, 
+                       algorithm="elim", 
+                       statistic="fisher")
+GenTable(GOdata, 
+         Fisher=resultFisher, 
+         topNodes=20, 
+         numChar=60)
+
+par(cex=0.3)
+showSigOfNodes(GOdata, 
+               score(resultFisher), 
+               firstSigNodes=5,
+               useInfo="all",
+               plotFunction=GOplot) + 
+    theme(text=element_text(size=20)) +
+    theme_minimal()
+
+```
+## Cluster 1

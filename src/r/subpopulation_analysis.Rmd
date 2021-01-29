@@ -400,9 +400,7 @@ neutrophil_metab_mat = getMetabolicGenes(neutrophil_metab_mat, human_map)
 # Analyze metabolic genes in clusters
 ## Cluster 0
 ```{r}
-neutrophil_c0 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==0 & 
-                                       markers$pct.1 > 0.5 & 
-                                       markers$pct.2 < 0.5,]$gene
+neutrophil_c0 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==0 & markers$pct.1 > 0.30 & markers$pct.2 < 0.30,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c0,
             label=TRUE,
@@ -410,8 +408,8 @@ FeaturePlot(neutrophils,
             label.size=4)
 ```
 ## Cluster 1
-```{r}
-neutrophil_c1 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==1 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+```{r, fig.height=12}
+neutrophil_c1 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==1 & markers$pct.1 > 0.30 & markers$pct.2 < 0.30,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c1,
             label=TRUE,
@@ -419,8 +417,8 @@ FeaturePlot(neutrophils,
             label.size=4)
 ```
 ## Cluster 2
-```{r}
-neutrophil_c2 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==2 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+```{r, fig.height=12}
+neutrophil_c2 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==2 & markers$pct.1 > 0.30 & markers$pct.2 < 0.30,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c2,
             label=TRUE,
@@ -428,8 +426,8 @@ FeaturePlot(neutrophils,
             label.size=4)
 ```
 ## Cluster 3
-```{r}
-neutrophil_c3 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==3 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+```{r, fig.height=12}
+neutrophil_c3 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==3 & markers$pct.1 > 0.30 & markers$pct.2 < 0.30,]$gene
 FeaturePlot(neutrophils, 
             features=neutrophil_c3,
             label=TRUE,

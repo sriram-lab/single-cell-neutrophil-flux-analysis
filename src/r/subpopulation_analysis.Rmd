@@ -166,10 +166,135 @@ top5 = markers %>%
 DoHeatmap(neutrophils, 
           features=top5$gene)
 ```
-Let's report GO enrichment
-```{r}
-BiocManager::install("clusterProfiler")
 
+
+## All clusters:
+```{r}
+FeaturePlot(neutrophils, 
+            features=c("Saa3", "B2m", "Fpr2", "Ltf", "Hbb-bt"),
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
+## Cluster 0
+These thresholds were selected arbitrarily.
+
+Saa3: Up-regulation is associated with the suppression of neutrophil inflammatory response for cluster 0. 
+
+  * Murdoch, C. C., Espenschied, S. T., Matty, M. A., Mueller, O., Tobin, D. M., & Rawls, J. F. (2019). Intestinal Serum amyloid A suppresses systemic neutrophil activation and bactericidal activity in response to microbiota colonization. PLoS pathogens, 15(3), e1007381.
+  
+Il1r2: Promotes self-renewal of reast tumor initiating cells and breast cancer proliferation/invasion
+
+  * Zhang, L., Qiang, J., Yang, X., Wang, D., Rehman, A. U., He, X., ... & Liu, S. (2020). IL1R2 Blockade Suppresses Breast Tumorigenesis and Progression by Impairing USP15‐Dependent BMI1 Stability. Advanced Science, 7(1), 1901728.
+
+```{r}
+neutrophil_c0 = markers[markers$cluster==0 & markers$pct.1 > 0.55 & markers$pct.2 < 0.45,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c0,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
+## Cluster 1
+
+B2m: Marker for neutrophil 
+
+  * Zhang, X., Ding, L., & Sandford, A. J. (2005). Selection of reference genes for gene expression studies in human neutrophils by real-time PCR. BMC molecular biology, 6(1), 1-7.
+
+Marcks: In unstimulated neutrophils
+
+  * Eckert, R. E., Neuder, L. E., Park, J., Adler, K. B., & Jones, S. L. (2010). Myristoylated alanine-rich C-kinase substrate (MARCKS) protein regulation of human neutrophil migration. American journal of respiratory cell and molecular biology, 42(5), 586-594.
+
+Rgs2: Bachoprotective in acute neutrophilic inflammation and dampens Th1 responses
+
+  * George, T., Chakraborty, M., Giembycz, M. A., & Newton, R. (2018). A bronchoprotective role for Rgs2 in a murine model of lipopolysaccharide-induced airways inflammation. Allergy, Asthma & Clinical Immunology, 14(1), 1-14.
+
+Lyz2: Neutrophil marker
+
+  * Kim, M. H., Yang, D., Kim, M., Kim, S. Y., Kim, D., & Kang, S. J. (2017). A late-lineage murine neutrophil precursor population exhibits dynamic changes during demand-adapted granulopoiesis. Scientific reports, 7(1), 1-15.
+
+Plek: NaN
+
+
+```{r}
+neutrophil_c1 = markers[markers$cluster==1 & markers$pct.1 > 0.55 & markers$pct.2 < 0.45,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c1,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
+## Cluster 2
+
+Stfa3: NaN
+
+Ifitm6: Increased in macrophages of tumor bearing mice.
+
+  * Han JH, Lee S, Park YS, et al. IFITM6 expression is increased in
+macrophages of tumor-bearing mice. Oncol Rep 2011;25:531–536.
+
+Fpr2: Promotes malignancy of human colon cancer.
+
+  * Liang, W., Chen, K., Gong, W., Yoshimura, T., Le, Y., Wang, Y., & Wang, J. M. (2020). The contribution of chemoattractant GPCRs, formylpeptide receptors, to inflammation and cancer. Frontiers in endocrinology, 11, 17.
+  
+  * Chen, K., Bao, Z., Gong, W., Tang, P., Yoshimura, T., & Wang, J. M. (2017). Regulation of inflammation by members of the formyl-peptide receptor family. Journal of autoimmunity, 85, 64-77.
+
+```{r}
+neutrophil_c2 = markers[markers$cluster==2 & markers$pct.1 > 0.65 & markers$pct.2 < 0.35,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c2,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
+## Cluster 3
+
+Ltf: Lactotransferrin - found in secondary granules of neutrophils
+
+  * Kruzel, M. L., Zimecki, M., & Actor, J. K. (2017). Lactoferrin in a context of inflammation-induced pathology. Frontiers in immunology, 8, 1438.
+  
+Camp: Promotes recriotment of inflammatory monocytes (atherosclerosis)
+
+  * Döring, Y., Drechsler, M., Wantha, S., Kemmerich, K., Lievens, D., Vijayan, S., ... & Soehnlein, O. (2012). Lack of neutrophil-derived CRAMP reduces atherosclerosis in mice. Circulation research, 110(8), 1052-1056.
+  
+Cybb(NOX2): Overexpression leads to accrued ROS production leading to survival of cancer cells.
+
+  * Weyemi, U., E Redon, C., R Parekh, P., Dupuy, C., & M Bonner, W. (2013). NADPH Oxidases NOXs and DUOXs as putative targets for cancer therapy. Anti-Cancer Agents in Medicinal Chemistry (Formerly Current Medicinal Chemistry-Anti-Cancer Agents), 13(3), 502-514.
+  
+  * Aydin, E., Johansson, J., Nazir, F. H., Hellstrand, K., & Martner, A. (2017). Role of NOX2-derived reactive oxygen species in NK cell–mediated control of murine melanoma metastasis. Cancer immunology research, 5(9), 804-811.
+  
+Aldh2: NaN
+
+Cd177: Highly expressed in CRC and UC-associated cancers
+
+  * Zhou, G., Peng, K., Song, Y., Yang, W., Shu, W., Yu, T., ... & Liu, Z. (2018). CD177+ neutrophils suppress epithelial cell tumourigenesis in colitis-associated cancer and predict good prognosis in colorectal cancer. Carcinogenesis, 39(2), 272-282.
+  
+  * Schiffmann, L. M., Fritsch, M., Gebauer, F., Günther, S. D., Stair, N. R., Seeger, J. M., ... & Coutelle, O. (2019). Tumour-infiltrating neutrophils counteract anti-VEGF therapy in metastatic colorectal cancer. British journal of cancer, 120(1), 69-78.
+  
+Ckap4: NaN
+
+```{r}
+neutrophil_c3 = markers[markers$cluster==3 & markers$pct.1 > 0.75 & markers$pct.2 < 0.25,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c3,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
+## Cluster 4
+Most likely residual erythrocytes classified as neutrophils due to hemoglobin biomarkers.
+```{r}
+neutrophil_c4 = markers[markers$cluster==4 & markers$pct.1 > 0.65 & markers$pct.2 < 0.35,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c4,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
 ```
 
 Let's also visualize based on time.
@@ -217,7 +342,103 @@ top5 = markers %>%
 # Create the heatmap of top markers
 DoHeatmap(neutrophils, 
           features=top5$gene)
+
 ```
+```{r}
+getMetabolicGenes = function(df, map){
+  mapped_df = merge(df, map, 
+                    by.x='NCBI.gene..formerly.Entrezgene..ID', by.y='entrezgene')
+  return(mapped_df)
+}
+```
+
+Now, let's get the genes, map it to human identifiers, and map that to iHUMAN.
+```{r}
+# Install necessary libraries
+install.packages("BiocManager")
+BiocManager::install("biomaRt")
+library(biomaRt)
+
+# Create the mouse and human database
+human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
+```
+
+Create a function that maps MGI gene symbols to HGNC gene symbols and Entrez IDs.
+```{r}
+# Make a function that maps genes using two reference databases
+convertMouseGeneList = function(gene_obj, db1, db2){
+  orthologs = getLDS(attributes=c("mgi_symbol"), filters="mgi_symbol", 
+                   values=rownames(gene_obj), mart=db2, 
+                   attributesL=c("hgnc_symbol", "entrezgene_id"), martL=db1, 
+                   uniqueRows=TRUE)
+  mapped_gene_obj = merge(orthologs, gene_obj, 
+                          by.x='MGI.symbol', by.y='row.names')
+  return(mapped_gene_obj)
+}
+```
+
+Now let's get our count matrix and perform this mapping.
+```{r}
+neutrophil_metab_mat = convertMouseGeneList(markers, human, mouse)
+```
+
+Let's grab the metabolic subset for the markers.
+```{r}
+# iHUMAN reconstruction
+human_map = read_excel("D:/Data/Reconstructions/Human1/Human1_SynGO.xlsx")
+```
+
+```{r}
+neutrophil_metab_mat = getMetabolicGenes(neutrophil_metab_mat, human_map)
+```
+
+## Cluster 0
+```{r}
+neutrophil_c0 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==0 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c0,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+## Cluster 1
+```{r}
+neutrophil_c1 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==1 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c1,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+## Cluster 2
+```{r}
+neutrophil_c2 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==2 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c2,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+## Cluster 3
+```{r}
+neutrophil_c3 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==3 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c3,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+## Cluster 4
+```{r}
+neutrophil_c4 = neutrophil_metab_mat[neutrophil_metab_mat$cluster==4 & markers$pct.1 > 0.50 & markers$pct.2 < 0.50,]$gene
+FeaturePlot(neutrophils, 
+            features=neutrophil_c4,
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
 
 # 5. Perform subsetting on NK Cells
 This analysis subsets based on predicted clusters and time.

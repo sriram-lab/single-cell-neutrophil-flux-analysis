@@ -31,15 +31,15 @@ library(reticulate)
 library(readxl)
 
 # Monocle3 is still in beta
-BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
-                       'limma', 'S4Vectors', 'SingleCellExperiment',
-                       'SummarizedExperiment', 'batchelor', 'Matrix.utils'))
+#BiocManager::install(c('BiocGenerics', 'DelayedArray', 'DelayedMatrixStats',
+#                       'limma', 'S4Vectors', 'SingleCellExperiment',
+#                       'SummarizedExperiment', 'batchelor', 'Matrix.utils'))
 #install.packages("devtools")
 library(devtools)
-devtools::install_github('cole-trapnell-lab/leidenbase', dependencies=TRUE)
-devtools::install_github('cole-trapnell-lab/monocle3', dependencies=TRUE)
+#devtools::install_github('cole-trapnell-lab/leidenbase', dependencies=TRUE)
+#devtools::install_github('cole-trapnell-lab/monocle3', dependencies=TRUE)
 
-remotes::install_github('satijalab/seurat-wrappers')
+#remotes::install_github('satijalab/seurat-wrappers')
 
 library(SeuratWrappers)
 library(monocle3)
@@ -53,10 +53,13 @@ We need to transform the Seurat object to a Cell Data Set, that can be used for 
 rm(list=ls())
 
 # ACLX
-load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# Dell
+load("D:/Data/scRNASeq/shea/lung.robj")
 
 # Linux
-load("~/Data/scRNASeq/shea/lung.Robj")
+#load("~/Data/scRNASeq/shea/lung.Robj")
 ```
 
 Let's load it up as a cds.
@@ -67,40 +70,55 @@ lung_cds = new_cell_data_set(dat,
                              cell_metadata=cell_metadata)
 #lung_cds$cell.type = cell_metadata
 ```
-
+# 3. Correct for batch effects
+First, we'll preprocess the lung data using the `preprocess_cds` and `reduce_dimension` methods.
 ```{r}
 lung_cds = preprocess_cds(lung_cds, num_dim=50)
+lung_cds = align_cds(lung_cds, alignment_group="batch")
+```
+
+# 4. Dimension reduction
+We'll run PCA and UMAP.
+```{r}
 lung_cds = reduce_dimension(lung_cds, reduction_method='PCA')
 lung_cds = reduce_dimension(lung_cds, reduction_method='UMAP')
+```
+
+# 5. Perform Clustering 
+Let's perform some clustering and visualize the clusters.
+```{r}
 lung_cds = cluster_cells(lung_cds, resolution=1e-5)
 plot_cells(lung_cds, color_cells_by="partition")
+```
+
+Let's learn the trajectory algorithmically.
+```{r}
 lung_cds = learn_graph(lung_cds)
 plot_cells(lung_cds,
            color_cells_by = "partition",
            label_groups_by_cluster=TRUE,
            label_leaves=FALSE,
            label_branch_points=FALSE)
-
-g1 ="Ldha"
-ldha_cds = lung_cds[rowData(lung_cds)$gene_short_name %in% g1]
-ldha_cds = learn_graph(ldha_cds)
 ```
 
+# 6. Construct the Pseudotime Trajectories
+This is a function to identify the root principle points automatically.
 ```{r}
 # a helper function to identify the root principal points:
-get_earliest_principal_node <- function(cds, time_bin="130-170"){
-  cell_ids <- which(colData(cds)[, "embryo.time.bin"] == time_bin)
+get_earliest_principal_node = function(cds, time_bin="130-170"){
+  cell_ids = which(colData(cds)[, "embryo.time.bin"] == time_bin)
   
-  closest_vertex <-
-  cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
-  closest_vertex <- as.matrix(closest_vertex[colnames(cds), ])
-  root_pr_nodes <-
-  igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names
-  (which.max(table(closest_vertex[cell_ids,]))))]
-  
-  root_pr_nodes
+  closest_vertex = cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex = as.matrix(closest_vertex[colnames(cds), ])
+  root_pr_nodes =
+  igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numerics(names(which.max(table(closest_vertex[cell_ids,]))))]
+  return(root_pr_nodes)
 }
-ldha_cds <- order_cells(ldha_cds, root_pr_nodes=get_earliest_principal_node(ldha_cds))
+```
+
+
+```{r}
+ldha_cds = order_cells(ldha_cds, root_pr_nodes=get_earliest_principal_node(ldha_cds))
 ```
 
 ```{r}
@@ -109,57 +127,3 @@ plot_genes_in_pseudotime(ldha_cds,
                          min_expr=0.5)
 ```
 
-# 3. Correct for batch effects
-
-Now let's adjust the data by batch effects.
-```{r}
-tmp = align_cds(tmp, alignment_group="batch")
-```
-
-# 4. Dimension reduction
-```{r}
-tmp = reduce_dimension(cds=tmp, reduction_method='UMAP')
-tmp = cluster_cells(cds=tmp, reduction_method='UMAP')
-```
-
-# 5. Perform Clustering 
-```{r}
-tmp = learn_graph(tmp, use_partition=TRUE)
-tmp = order_cells(tmp, reduction_method="UMAP")
-```
-
-# 6. Construct the Pseudotime Trajectories
-The code block below identifies the earliest principle node to start the pseudotime trajectory analysis.
-```{r}
-get_earliest_principal_node = function(cds, time_bin="130-170"){
-  cell_ids = which(colData(cds)[, "embryo.time.bin"] == time_bin)
-  
-  closest_vertex =
-  cds@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
-  closest_vertex = as.matrix(closest_vertex[colnames(cds), ])
-  root_pr_nodes =
-  igraph::V(principal_graph(cds)[["UMAP"]])$name[as.numeric(names
-  (which.max(table(closest_vertex[cell_ids,]))))]
-  
-  root_pr_nodes
-}
-
-# Now perform the ordering using the custom function
-tmp = order_cells(tmp, root_pr_nodes=get_earliest_principal_node(tmp))
-```
-
-# 7. Plot the pseudotime trajectory for the developmental program
-```{r}
-plot_cells(
-  cds = tmp,
-  color_cells_by = "pseudotime",
-  show_trajectory_graph = TRUE,
-)
-
-my_genes = row.names(subset(fData(tmp), gene_short_name %in% c("Lhda"))) 
-```
-
-# 8. Plot the gene pseudotime trajectories
-```{r}
-plot_genes_in_pseudotime(cds_subset=tmp)
-```

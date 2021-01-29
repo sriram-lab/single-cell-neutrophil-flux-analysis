@@ -23,10 +23,7 @@ library(reshape2)
 library(ggplot2)
 library(phateR)
 library(reticulate)
-#install.packages('readxl')
 library(readxl)
-
-#install.packages('sctransform')
 library(sctransform)
 ```
 
@@ -65,7 +62,10 @@ library(biomaRt)
 # Create the mouse and human database
 human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
 mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
+```
 
+Create a function that maps MGI gene symbols to HGNC gene symbols and Entrez IDs.
+```{r}
 # Make a function that maps genes using two reference databases
 convertMouseGeneList = function(gene_obj, db1, db2){
   orthologs = getLDS(attributes=c("mgi_symbol"), filters="mgi_symbol", 
@@ -76,15 +76,24 @@ convertMouseGeneList = function(gene_obj, db1, db2){
                           by.x='MGI.symbol', by.y='row.names')
   return(mapped_gene_obj)
 }
+```
 
+Now let's get our count matrix and perform this mapping.
+```{r}
 counts_mat = convertMouseGeneList(counts_mat, human, mouse)
+```
 
+Let's also create a function that grabs the metabolic genes from the data matrix.
+```{r}
 getMetabolicGenes = function(df, map){
   mapped_df = merge(df, map, 
                     by.x='NCBI.gene..formerly.Entrezgene..ID', by.y='entrezgene')
   return(mapped_df)
 }
+```
 
+Let's clean up the count matrix.
+```{r}
 counts_mat = getMetabolicGenes(counts_mat, human_map)
 counts_mat$NCBI.gene..formerly.Entrezgene..ID = NULL
 counts_mat$HGNC.symbol = NULL

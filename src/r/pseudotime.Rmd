@@ -38,12 +38,15 @@ library(readxl)
 library(devtools)
 #devtools::install_github('cole-trapnell-lab/leidenbase', dependencies=TRUE)
 #devtools::install_github('cole-trapnell-lab/monocle3', dependencies=TRUE)
+#BiocManager::install('monocle')
 
 #remotes::install_github('satijalab/seurat-wrappers')
 
 library(SeuratWrappers)
-library(monocle3)
+library(monocle)
 library(Matrix)
+library(DDRTree)
+library(pheatmap)
 ```
 
 # 2. Set up data objects for Monocle
@@ -64,12 +67,40 @@ load("D:/Data/scRNASeq/shea/lung.robj")
 
 Let's load it up as a cds.
 ```{r}
-dat = as.matrix(lung@assays$RNA@data)
+data = as(as.matrix(lung@assays$RNA@data), 'sparseMatrix')
 cell_metadata = data.frame(lung@active.ident)
-lung_cds = new_cell_data_set(dat, 
-                             cell_metadata=cell_metadata)
-#lung_cds$cell.type = cell_metadata
+pd = new("AnnotatedDataFrame", data=lung@meta.data)
+
+fData = data.frame(gene_short_name=row.names(data), row.names=row.names(data))
+fd = new('AnnotatedDataFrame', data=fData)
+
+lung_cds = newCellDataSet(data,
+                         phenoData = pd,
+                         featureData = fd,
+                         lowerDetectionLimit = 0.5,
+                         expressionFamily = negbinomial())
 ```
+
+# Estimate Size factors and dispersions
+```{r}
+lung_cds = estimateSizeFactors(lung_cds)
+lung_cds = estimateDispersions(lung_cds)
+```
+
+# Data filtering
+```{r}
+lung_cds = detectGenes(lung_cds, min_expr=0.1)
+print(head(fData(lung_cds)))
+
+disp_table = dispersionTable(lung_cds)
+unsup_clustering_genes = subset(disp_table, mean_expression >= 0.1)
+lung_cds = setOrderingFilter(lung_cds, unsup_clustering_genes$gene_id)
+plot_ordering_genes(lung_cds)
+
+L = log(exprs(lung_cds))
+
+```
+
 # 3. Correct for batch effects
 First, we'll preprocess the lung data using the `preprocess_cds` and `reduce_dimension` methods.
 ```{r}

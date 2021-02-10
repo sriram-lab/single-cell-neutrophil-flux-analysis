@@ -39,6 +39,7 @@ library(reshape2)
 library(ggplot2)
 library(phateR)
 library(reticulate)
+library(MAST)
 
 ```
 
@@ -106,6 +107,9 @@ find_subpopulations = function(gene_obj){
   gene_obj = ScaleData(gene_obj, 
                    features=all.genes)
   
+  gene_obj = SCTransform(gene_obj)
+
+  
   # Run PCA
   gene_obj = RunPCA(object=gene_obj,
                 npcs=50,
@@ -156,7 +160,8 @@ We should also report the biomarkers.
 markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
                          min.pct = 0.25,
-                         logfc.threshold=0.25)
+                         logfc.threshold=0.25,
+                         test.use='MAST')
 top5 = markers %>% 
   group_by(cluster) %>% 
   top_n(n=5, 

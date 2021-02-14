@@ -143,7 +143,7 @@ DimPlot(neutrophils,
         repel=TRUE,
         label.size=4,
         na.value = "grey50") + 
-        labs(x="UMAP 1", y="UMAP 2", title="Neutrophil UMAP compression") +
+        labs(x="UMAP 1", y="UMAP 2", title="Unsupervised learning") +
         theme_minimal() +
         theme(plot.title = element_text(size=25),
               legend.text=element_text(size=20),
@@ -162,6 +162,13 @@ markers = FindAllMarkers(neutrophils,
                          min.pct = 0.25,
                          logfc.threshold=0.25,
                          test.use='MAST')
+
+markers = markers[!duplicated(markers[, "gene"]), ]
+markers = markers[markers$pct.1 > 0.5 & markers$pct.2 < 0.5, ]
+write_csv(markers, "D:/Analysis/Immune/neutrophil_deg_clusters.csv")
+```
+
+```{r}
 top5 = markers %>% 
   group_by(cluster) %>% 
   top_n(n=5, 
@@ -305,10 +312,8 @@ FeaturePlot(neutrophils,
 Let's also visualize based on time.
 ```{r}
 # Create color scheme by changing Identifier
-expt = neutrophils@meta.data["Experiment"]
-expt = as.character(expt$Experiment)
 neutrophils = SetIdent(obj=neutrophils, 
-                       value=expt)
+                       value=neutrophils@meta.data$Time)
 ```
 
 ```{r}
@@ -320,7 +325,7 @@ DimPlot(neutrophils,
         repel=TRUE,
         label.size=4,
         na.value = "grey50") + 
-        labs(x="UMAP 1", y="UMAP 2", title="Neutrophil UMAP compression") +
+        labs(x="UMAP 1", y="UMAP 2", title="Time-Course") +
         theme_minimal() +
         theme(plot.title = element_text(size=25),
               legend.text=element_text(size=20),
@@ -337,8 +342,15 @@ We should also report the biomarkers.
 markers = FindAllMarkers(neutrophils,
                          only.pos=TRUE,
                          min.pct=0.25,
-                         logfc.threshold=0.25)
+                         logfc.threshold=0.25,
+                         test.use='MAST')
 
+markers = markers[!duplicated(markers[, "gene"]), ]
+markers = markers[markers$pct.1 > 0.5 & markers$pct.2 < 0.5, ]
+write_csv(markers, "D:/Analysis/Immune/neutrophil_deg_timecourse.csv")
+```
+
+```{r}
 top5 = markers %>% 
   group_by(cluster) %>% 
   top_n(n=20, 

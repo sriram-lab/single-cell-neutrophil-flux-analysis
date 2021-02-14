@@ -1,0 +1,151 @@
+---
+title: "Dimension reduction with Flux Balance Analysis"
+output: html_notebook
+---
+
+# Summary
+
+# 1. Read in libraries
+```{r}
+library(tidyverse)
+library(umap)
+library(Seurat)
+library(writexl)
+```
+
+# 2. Read in data
+We'll read in the metabolic
+```{r}
+rm(list=ls())
+flux_data = read_csv('D:/Analysis/Immune/neutrophil_flux.csv')
+flux_data[, 2:ncol(flux_data)] = abs(flux_data[, 2:ncol(flux_data)])
+
+# Create identity
+labels = flux_data$ID
+labels = sub("\\.\\d+$", "", labels)
+
+# Cells need to be cols and rows need to be reactions
+flux_data = t(flux_data)
+
+# Set column names
+#names(flux_data) = lapply(flux_data[1, ], as.character)
+colnames(flux_data) = as.character(flux_data["ID", ])
+flux_data = flux_data[-1, ] 
+```
+
+Let's create a seurat object
+```{r}
+neutrophil = CreateSeuratObject(counts=flux_data, 
+                                project="neutrophil_flux", 
+                                min.cells=1, 
+                                min.features=20)
+```
+
+
+
+# 3. Data Preprocessing
+Now that we hacked the Seurat object, let's run the usual preprocessing pipeline. Note that SCTransform doesn't work with this data.
+
+```{r}
+neutrophil = FindVariableFeatures(object=neutrophil, 
+                              mean.function=ExpMean,
+                              dispersion.function=LogVMR,
+                              selection.method='vst',
+                              x.low.cutoff=-Inf,
+                              x.high.cutoff=Inf,
+                              y.cutoff=Inf,
+                              nfeatures = 2000)
+
+# Log normalize data
+neutrophil = NormalizeData(neutrophil, 
+                     normalization.method='LogNormalize', 
+                     scale.factor=10000)
+
+all.rxns = rownames(neutrophil)
+neutrophil = ScaleData(neutrophil, 
+                      features=all.rxns)
+
+# Run PCA
+neutrophil = RunPCA(object=neutrophil,
+              npcs=50,
+              verbose=FALSE)
+
+# Find shortest nearest neighbors and clusters
+neutrophil = FindNeighbors(neutrophil, 
+                     dims=1:50,
+                     reduction='pca')
+neutrophil = FindClusters(neutrophil, 
+                    resolution=0.5)
+
+# Perform UMAP
+neutrophil = RunUMAP(neutrophil, 
+               dims=1:50)
+```
+
+Create the DimPlot.
+```{r,fig.height=12}
+# Plot based on predicted clusters
+DimPlot(neutrophil, 
+        reduction="umap",
+        dims=c(1, 2),
+        label=TRUE,
+        repel=TRUE,
+        label.size=4,
+        na.value = "grey50") + 
+        labs(x="UMAP 1", y="UMAP 2", title="Neutrophil metabolic flux UMAP") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=25),
+              legend.text=element_text(size=20),
+              axis.title.x=element_text(size=20),
+              axis.title.y=element_text(size=20),
+              axis.text.x=element_text(size=20),
+              axis.text.y=element_text(size=20)) +
+        geom_hline(yintercept=0) +
+        geom_vline(xintercept=0)
+```
+
+Get all metabolic reactions by predicted UMAP clusters
+```{r}
+cluster_markers = FindAllMarkers(neutrophil,
+                         only.pos=TRUE,
+                         min.pct=0.25,
+                         logfc.threshold=0.25,
+                         test.use="MAST",
+                         )
+cluster_markers = cluster_markers[!duplicated(cluster_markers[, "gene"]), ]
+#writexl::write_xlsx(cluster_markers, "D:/Analysis/Immune/neutrophil_flux_clusters.xlsx")
+```
+
+Change the identity by day
+```{r}
+# Create color scheme by changing Identifier
+neutrophil.day = SetIdent(obj=neutrophil, 
+                          value=labels)
+```
+
+# 4. Run UMAP with the flux data
+Rows correspond to different cells in each time point. Columns correspond to different metabolic reactions.
+```{r,fig.height=4}
+day_markers = FindAllMarkers(neutrophil.day,
+                         only.pos=TRUE,
+                         min.pct=0.25,
+                         logfc.threshold=0.25,
+                         test.use="MAST",
+                         )
+
+neutrophil_d0 = day_markers[day_markers$cluster=="Neutrophils  0",]$gene
+FeaturePlot(neutrophil.day, 
+            features=neutrophil_d0[1],
+            label=FALSE,
+            repel=TRUE,
+            label.size=4) + 
+        labs(title="Day 0", x="UMAP 1", y="UMAP 2")
+
+neutrophil_d21 = day_markers[day_markers$cluster=="Neutrophils  21",]$gene
+FeaturePlot(neutrophil.day, 
+            features=neutrophil_d21[1],
+            label=FALSE,
+            repel=TRUE,
+            label.size=4) + 
+        labs(title="Day 21", x="UMAP 1", y="UMAP 2")
+```

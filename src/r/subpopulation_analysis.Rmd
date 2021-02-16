@@ -165,8 +165,42 @@ markers = FindAllMarkers(neutrophils,
 
 markers = markers[!duplicated(markers[, "gene"]), ]
 markers = markers[markers$pct.1 > 0.5 & markers$pct.2 < 0.5, ]
-write_csv(markers, "D:/Analysis/Immune/neutrophil_deg_clusters.csv")
+#write_csv(markers, "D:/Analysis/Immune/neutrophil_deg_clusters.csv")
 ```
+```{r, fig.width=12}
+FeaturePlot(neutrophils, 
+            features=c("Idh1", "Idh2"),
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            pt.size=1.5
+            )
+```
+```{r, fig.width=10}
+FeaturePlot(neutrophils, 
+            features=c("Adk", "Dck", "Aprt"),
+            label=TRUE,
+            repel=TRUE,
+            label.size=4)
+```
+
+```{r}
+FeaturePlot(neutrophils, 
+            features=c("Hprt", "Pnp", "Adss"),
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            pt.size=1.2)
+```
+```{r}
+FeaturePlot(neutrophils, 
+            features=c("Glud1"),
+            label=TRUE,
+            repel=TRUE,
+            label.size=4,
+            pt.size=1.2)
+```
+
 
 ```{r}
 top5 = markers %>% 

@@ -74,6 +74,7 @@ neutrophil = RunPCA(object=neutrophil,
 neutrophil = FindNeighbors(neutrophil, 
                      dims=1:50,
                      reduction='pca')
+
 neutrophil = FindClusters(neutrophil, 
                     resolution=0.5)
 
@@ -113,6 +114,7 @@ cluster_markers = FindAllMarkers(neutrophil,
                          test.use="MAST",
                          )
 cluster_markers = cluster_markers[!duplicated(cluster_markers[, "gene"]), ]
+
 #writexl::write_xlsx(cluster_markers, "D:/Analysis/Immune/neutrophil_flux_clusters.xlsx")
 ```
 
@@ -121,6 +123,15 @@ Change the identity by day
 # Create color scheme by changing Identifier
 neutrophil.day = SetIdent(obj=neutrophil, 
                           value=labels)
+
+#tmp = AverageExpression(neutrophil.day, features=day_markers$gene)
+levels(neutrophil.day) = c("Neutrophils  0", "Neutrophils  7", "Neutrophils  14", "Neutrophils  21")
+DoHeatmap(object=neutrophil.day,
+          features=day_markers$gene,
+          group.colors=c('#E1E5F2', '#BFDBF7', '#1F7A8C', '#022B3A')) +
+        scale_y_discrete(labels=day_markers$Name) +
+        scale_fill_gradientn(colors=c("blue", "gray", "red"))
+        
 ```
 
 # 4. Run UMAP with the flux data
@@ -131,6 +142,17 @@ day_markers = FindAllMarkers(neutrophil.day,
                          min.pct=0.25,
                          logfc.threshold=0.25,
                          test.use="MAST",
+                         )
+
+day_markers$Name = c("Adenosine Phosphorylase", 
+                         "Adenine Phosphoribosyltransferase",
+                         "Adenosine Kinase",
+                         "Glutamate Dehydrogenase",
+                         "Isocitrate:NAD+ Oxidoreductase",
+                         "Isocitrate:NADP+ Oxidoreductase",
+                         "Hypoxanthine Phosphoribosyltransferase",
+                         "Inosine Phosphorylase",
+                         "Inosine Kinase"
                          )
 
 neutrophil_d0 = day_markers[day_markers$cluster=="Neutrophils  0",]$gene

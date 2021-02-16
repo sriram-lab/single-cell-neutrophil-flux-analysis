@@ -38,28 +38,32 @@ Now we'll save the count data, the gene symbols, and the cell type as several cs
 ```{r}
 rm(list=ls())
 
-load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
 
 # Count data
 data = lung@assays$RNA@counts
 data = as.data.frame(data)
 write_delim(data, 
-            "C:/Users/scott/Data/scRNASeq/shea/lung.csv",
+            "D:/Data/scRNASeq/shea/lung.csv",
             delim=',')
+
+
 
 # Gene Symbol Data
-MGI.Symbol = as.data.frame(rownames(data))
-write_delim(MGI.Symbol, 
-            "C:/Users/scott/Data/scRNASeq/shea/symbol.csv",
-            delim=",")
+#MGI.Symbol = as.data.frame(rownames(data))
+#write_delim(MGI.Symbol, 
+#            "C:/Users/scott/Data/scRNASeq/shea/symbol.csv",
+#            delim=",")
 
 # Cell identification data
-active_indent = as.data.frame(lung@active.ident)
-active_indent$true_ident = rownames(active_indent)
-rownames(active_indent) = NULL
-write_delim(x=active_indent,
-            file="C:/Users/scott/Data/scRNASeq/shea/active_ident.csv",
-            delim=',')
+#active_indent = as.data.frame(lung@active.ident)
+#active_indent$true_ident = rownames(active_indent)
+#rownames(active_indent) = NULL
+#write_delim(x=active_indent,
+#            file="C:/Users/scott/Data/scRNASeq/shea/active_ident.csv",
+#            delim=',')
 ```
 
 # 3. Save Subsets as Separate Sheets in an Excel file

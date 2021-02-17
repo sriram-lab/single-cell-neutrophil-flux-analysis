@@ -1957,18 +1957,22 @@ rm(list=ls())
 #load(&quot;C:/Users/scott/Data/scRNASeq/shea/lung.robj&quot;, verbose=TRUE)
 load(&quot;D:/Data/scRNASeq/shea/lung.robj&quot;, verbose=TRUE)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gZ3JlZ2V4cHIoY2FsbHRleHQsIHNpbmdsZWxpbmUsIGZpeGVkID0gVFJVRSkgOiBcbiAgcmVndWxhciBleHByZXNzaW9uIGlzIGludmFsaWQgVVRGLThcbiJ9 -->
+<pre><code>Error in gregexpr(calltext, singleline, fixed = TRUE) : 
+  regular expression is invalid UTF-8</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyBvYmplY3RzOlxuICBsdW5nXG4ifQ== -->
 <pre><code>Loading objects:
   lung</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb3VudCBkYXRhXG5kYXRhID0gbHVuZ0Bhc3NheXMkUk5BQGNvdW50c1xuZGF0YSA9IGFzLmRhdGEuZnJhbWUoZGF0YSlcbndyaXRlX2RlbGltKGRhdGEsIFxuICAgICAgICAgICAgXCJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5jc3ZcIixcbiAgICAgICAgICAgIGRlbGltPScsJylcblxuXG5cbiMgR2VuZSBTeW1ib2wgRGF0YVxuI01HSS5TeW1ib2wgPSBhcy5kYXRhLmZyYW1lKHJvd25hbWVzKGRhdGEpKVxuI3dyaXRlX2RlbGltKE1HSS5TeW1ib2wsIFxuIyAgICAgICAgICAgIFwiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL3N5bWJvbC5jc3ZcIixcbiMgICAgICAgICAgICBkZWxpbT1cIixcIilcblxuIyBDZWxsIGlkZW50aWZpY2F0aW9uIGRhdGFcbiNhY3RpdmVfaW5kZW50ID0gYXMuZGF0YS5mcmFtZShsdW5nQGFjdGl2ZS5pZGVudClcbiNhY3RpdmVfaW5kZW50JHRydWVfaWRlbnQgPSByb3duYW1lcyhhY3RpdmVfaW5kZW50KVxuI3Jvd25hbWVzKGFjdGl2ZV9pbmRlbnQpID0gTlVMTFxuI3dyaXRlX2RlbGltKHg9YWN0aXZlX2luZGVudCxcbiMgICAgICAgICAgICBmaWxlPVwiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL2FjdGl2ZV9pZGVudC5jc3ZcIixcbiMgICAgICAgICAgICBkZWxpbT0nLCcpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb3VudCBkYXRhXG5kYXRhID0gc3Vic2V0KGx1bmcsIHN1YnNldD1DZWxsVHlwZT09J05ldXRyb3BoaWxzJylcbmRhdGEgPSBkYXRhQGFzc2F5cyRSTkFAY291bnRzXG5kYXRhID0gYXMuZGF0YS5mcmFtZShkYXRhKVxud3JpdGVfZGVsaW0oZGF0YSwgXG4gICAgICAgICAgICBcIkQ6L0RhdGEvc2NSTkFTZXEvc2hlYS9sdW5nLmNzdlwiLFxuICAgICAgICAgICAgZGVsaW09JywnKVxuXG5cbiMgR2VuZSBTeW1ib2wgRGF0YVxuI01HSS5TeW1ib2wgPSBhcy5kYXRhLmZyYW1lKHJvd25hbWVzKGRhdGEpKVxuI3dyaXRlX2RlbGltKE1HSS5TeW1ib2wsIFxuIyAgICAgICAgICAgIFwiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL3N5bWJvbC5jc3ZcIixcbiMgICAgICAgICAgICBkZWxpbT1cIixcIilcblxuIyBDZWxsIGlkZW50aWZpY2F0aW9uIGRhdGFcbiNhY3RpdmVfaW5kZW50ID0gYXMuZGF0YS5mcmFtZShsdW5nQGFjdGl2ZS5pZGVudClcbiNhY3RpdmVfaW5kZW50JHRydWVfaWRlbnQgPSByb3duYW1lcyhhY3RpdmVfaW5kZW50KVxuI3Jvd25hbWVzKGFjdGl2ZV9pbmRlbnQpID0gTlVMTFxuI3dyaXRlX2RlbGltKHg9YWN0aXZlX2luZGVudCxcbiMgICAgICAgICAgICBmaWxlPVwiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL2FjdGl2ZV9pZGVudC5jc3ZcIixcbiMgICAgICAgICAgICBkZWxpbT0nLCcpXG5gYGAifQ== -->
 <pre class="r"><code># Count data
-data = lung@assays$RNA@counts
+data = subset(lung, subset=CellType==&#39;Neutrophils&#39;)
+data = data@assays$RNA@counts
 data = as.data.frame(data)
 write_delim(data, 
             &quot;D:/Data/scRNASeq/shea/lung.csv&quot;,
             delim=&#39;,&#39;)
-
 
 
 # Gene Symbol Data
@@ -2030,232 +2034,12 @@ convertMouseGeneList = function(gene_obj, db1, db2){
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW5zdGFsbC5wYWNrYWdlcygnQmlvY01hbmFnZXInKVxuYGBgIn0= -->
-<pre class="r"><code>install.packages(&#39;BiocManager&#39;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gaW5zdGFsbC5wYWNrYWdlcyA6IFVwZGF0aW5nIGxvYWRlZCBwYWNrYWdlc1xuIn0= -->
-<pre><code>Error in install.packages : Updating loaded packages</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuQmlvY01hbmFnZXI6Omluc3RhbGwoXCJiaW9tYVJ0XCIsIFxuICAgICAgICAgICAgICAgICAgICAgZGVwZW5kZW5jaWVzPVRSVUUsXG4gICAgICAgICAgICAgICAgICAgICBJTlNUQUxMX29wdHM9Jy0tbm8tbG9jaycpXG5gYGAifQ== -->
-<pre class="r"><code>BiocManager::install(&quot;biomaRt&quot;, 
-                     dependencies=TRUE,
-                     INSTALL_opts=&#39;--no-lock&#39;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQmlvY29uZHVjdG9yIHZlcnNpb24gMy4xMiAoQmlvY01hbmFnZXIgMS4zMC4xMCksIFIgNC4wLjMgKDIwMjAtMTAtMTApXG5JbnN0YWxsaW5nIHBhY2thZ2UocykgJ2Jpb21hUnQnXG5jYW5ub3Qgb3BlbiBVUkwgJ2h0dHBzOi8vYmlvY29uZHVjdG9yLm9yZy9wYWNrYWdlcy8zLjEyL2RhdGEvYW5ub3RhdGlvbi9iaW4vd2luZG93cy9jb250cmliLzQuMC9QQUNLQUdFUy5yZHMnOiBIVFRQIHN0YXR1cyB3YXMgJzQwNCBOb3QgRm91bmQnY2Fubm90IG9wZW4gVVJMICdodHRwczovL2Jpb2NvbmR1Y3Rvci5vcmcvcGFja2FnZXMvMy4xMi9kYXRhL2Fubm90YXRpb24vYmluL3dpbmRvd3MvY29udHJpYi80LjAvUEFDS0FHRVMuZ3onOiBIVFRQIHN0YXR1cyB3YXMgJzQwNCBOb3QgRm91bmQnY2Fubm90IG9wZW4gVVJMICdodHRwczovL2Jpb2NvbmR1Y3Rvci5vcmcvcGFja2FnZXMvMy4xMi9kYXRhL2V4cGVyaW1lbnQvYmluL3dpbmRvd3MvY29udHJpYi80LjAvUEFDS0FHRVMucmRzJzogSFRUUCBzdGF0dXMgd2FzICc0MDQgTm90IEZvdW5kJ2Nhbm5vdCBvcGVuIFVSTCAnaHR0cHM6Ly9iaW9jb25kdWN0b3Iub3JnL3BhY2thZ2VzLzMuMTIvZGF0YS9leHBlcmltZW50L2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL1BBQ0tBR0VTLmd6JzogSFRUUCBzdGF0dXMgd2FzICc0MDQgTm90IEZvdW5kJ2Nhbm5vdCBvcGVuIFVSTCAnaHR0cHM6Ly9iaW9jb25kdWN0b3Iub3JnL3BhY2thZ2VzLzMuMTIvd29ya2Zsb3dzL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL1BBQ0tBR0VTLnJkcyc6IEhUVFAgc3RhdHVzIHdhcyAnNDA0IE5vdCBGb3VuZCdjYW5ub3Qgb3BlbiBVUkwgJ2h0dHBzOi8vYmlvY29uZHVjdG9yLm9yZy9wYWNrYWdlcy8zLjEyL3dvcmtmbG93cy9iaW4vd2luZG93cy9jb250cmliLzQuMC9QQUNLQUdFUy5neic6IEhUVFAgc3RhdHVzIHdhcyAnNDA0IE5vdCBGb3VuZCd0cnlpbmcgVVJMICdodHRwczovL2Jpb2NvbmR1Y3Rvci5vcmcvcGFja2FnZXMvMy4xMi9iaW9jL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL2Jpb21hUnRfMi40Ni4xLnppcCdcbkNvbnRlbnQgdHlwZSAnYXBwbGljYXRpb24vemlwJyBsZW5ndGggOTEyMjg5IGJ5dGVzICg4OTAgS0IpXG5kb3dubG9hZGVkIDg5MCBLQlxuIn0= -->
-<pre><code>Bioconductor version 3.12 (BiocManager 1.30.10), R 4.0.3 (2020-10-10)
-Installing package(s) &#39;biomaRt&#39;
-cannot open URL &#39;https://bioconductor.org/packages/3.12/data/annotation/bin/windows/contrib/4.0/PACKAGES.rds&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/data/annotation/bin/windows/contrib/4.0/PACKAGES.gz&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/data/experiment/bin/windows/contrib/4.0/PACKAGES.rds&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/data/experiment/bin/windows/contrib/4.0/PACKAGES.gz&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/workflows/bin/windows/contrib/4.0/PACKAGES.rds&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/workflows/bin/windows/contrib/4.0/PACKAGES.gz&#39;: HTTP status was &#39;404 Not Found&#39;trying URL &#39;https://bioconductor.org/packages/3.12/bioc/bin/windows/contrib/4.0/biomaRt_2.46.1.zip&#39;
-Content type &#39;application/zip&#39; length 912289 bytes (890 KB)
-downloaded 890 KB</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhiaW9tYVJ04oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuXG5UaGUgZG93bmxvYWRlZCBiaW5hcnkgcGFja2FnZXMgYXJlIGluXG5cdEM6XFxVc2Vyc1xcU2NvdHRcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxSdG1wa1R6RHNVXFxkb3dubG9hZGVkX3BhY2thZ2VzXG4ifQ== -->
-<pre><code>package ‘biomaRt’ successfully unpacked and MD5 sums checked
-
-The downloaded binary packages are in
-    C:\Users\Scott\AppData\Local\Temp\RtmpkTzDsU\downloaded_packages</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiSW5zdGFsbGF0aW9uIHBhdGggbm90IHdyaXRlYWJsZSwgdW5hYmxlIHRvIHVwZGF0ZSBwYWNrYWdlczogYm9vdCwgY2xhc3MsXG4gIGNvZGV0b29scywgZm9yZWlnbiwgS2VyblNtb290aCwgTWF0cml4LCBubG1lLCBubmV0LCBzcGF0aWFsXG5PbGQgcGFja2FnZXM6ICdiYWNrcG9ydHMnLCAnY29sb3JzcGFjZScsICdkYXRhLnRhYmxlJywgJ2RlbGRpcicsICdkcGx5cicsXG4gICdmYXN0bWFwJywgJ2dlcnQnLCAnZ2dyZXBlbCcsICdodHRwdXYnLCAnanNvbmxpdGUnLCAnUmNwcCcsICdSY3BwQW5ub3knLFxuICAnUlNRTGl0ZScsICdzYXNzJywgJ3NjdHJhbnNmb3JtJywgJ3NwYXRzdGF0LnV0aWxzJywgJ3RpYmJsZScsICd2Y3RycycsXG4gICd4ZnVuJ1xuIn0= -->
-<pre><code>Installation path not writeable, unable to update packages: boot, class,
-  codetools, foreign, KernSmooth, Matrix, nlme, nnet, spatial
-Old packages: &#39;backports&#39;, &#39;colorspace&#39;, &#39;data.table&#39;, &#39;deldir&#39;, &#39;dplyr&#39;,
-  &#39;fastmap&#39;, &#39;gert&#39;, &#39;ggrepel&#39;, &#39;httpuv&#39;, &#39;jsonlite&#39;, &#39;Rcpp&#39;, &#39;RcppAnnoy&#39;,
-  &#39;RSQLite&#39;, &#39;sass&#39;, &#39;sctransform&#39;, &#39;spatstat.utils&#39;, &#39;tibble&#39;, &#39;vctrs&#39;,
-  &#39;xfun&#39;</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiVXBkYXRlIGFsbC9zb21lL25vbmU/IFthL3Mvbl06IFxuIn0= -->
-<pre><code>Update all/some/none? [a/s/n]: </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW5zdGFsbC5wYWNrYWdlcyhcIkJpb2NNYW5hZ2VyXCIpXG5gYGAifQ== -->
-<pre class="r"><code>install.packages(&quot;BiocManager&quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiVXBkYXRlIGFsbC9zb21lL25vbmU/IFthL3Mvbl06IFxuIn0= -->
-<pre><code>Update all/some/none? [a/s/n]: </code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYVxuYGBgIn0= -->
-<pre class="r"><code>a</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZXMg46S847ixZHBseXLjpLzjuLIsIOOkvOO4sXRpYmJsZeOkvOO4siBhcmUgaW4gdXNlIGFuZCB3aWxsIG5vdCBiZSBpbnN0YWxsZWRjYW5ub3Qgb3BlbiBVUkwgJ2h0dHBzOi8vYmlvY29uZHVjdG9yLm9yZy9wYWNrYWdlcy8zLjEyL2RhdGEvYW5ub3RhdGlvbi9iaW4vd2luZG93cy9jb250cmliLzQuMC9QQUNLQUdFUy5yZHMnOiBIVFRQIHN0YXR1cyB3YXMgJzQwNCBOb3QgRm91bmQnY2Fubm90IG9wZW4gVVJMICdodHRwczovL2Jpb2NvbmR1Y3Rvci5vcmcvcGFja2FnZXMvMy4xMi9kYXRhL2Fubm90YXRpb24vYmluL3dpbmRvd3MvY29udHJpYi80LjAvUEFDS0FHRVMuZ3onOiBIVFRQIHN0YXR1cyB3YXMgJzQwNCBOb3QgRm91bmQnY2Fubm90IG9wZW4gVVJMICdodHRwczovL2Jpb2NvbmR1Y3Rvci5vcmcvcGFja2FnZXMvMy4xMi9kYXRhL2V4cGVyaW1lbnQvYmluL3dpbmRvd3MvY29udHJpYi80LjAvUEFDS0FHRVMucmRzJzogSFRUUCBzdGF0dXMgd2FzICc0MDQgTm90IEZvdW5kJ2Nhbm5vdCBvcGVuIFVSTCAnaHR0cHM6Ly9iaW9jb25kdWN0b3Iub3JnL3BhY2thZ2VzLzMuMTIvZGF0YS9leHBlcmltZW50L2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL1BBQ0tBR0VTLmd6JzogSFRUUCBzdGF0dXMgd2FzICc0MDQgTm90IEZvdW5kJ2Nhbm5vdCBvcGVuIFVSTCAnaHR0cHM6Ly9iaW9jb25kdWN0b3Iub3JnL3BhY2thZ2VzLzMuMTIvd29ya2Zsb3dzL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL1BBQ0tBR0VTLnJkcyc6IEhUVFAgc3RhdHVzIHdhcyAnNDA0IE5vdCBGb3VuZCdjYW5ub3Qgb3BlbiBVUkwgJ2h0dHBzOi8vYmlvY29uZHVjdG9yLm9yZy9wYWNrYWdlcy8zLjEyL3dvcmtmbG93cy9iaW4vd2luZG93cy9jb250cmliLzQuMC9QQUNLQUdFUy5neic6IEhUVFAgc3RhdHVzIHdhcyAnNDA0IE5vdCBGb3VuZCdcbiJ9 -->
-<pre><code>packages 㤼㸱dplyr㤼㸲, 㤼㸱tibble㤼㸲 are in use and will not be installedcannot open URL &#39;https://bioconductor.org/packages/3.12/data/annotation/bin/windows/contrib/4.0/PACKAGES.rds&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/data/annotation/bin/windows/contrib/4.0/PACKAGES.gz&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/data/experiment/bin/windows/contrib/4.0/PACKAGES.rds&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/data/experiment/bin/windows/contrib/4.0/PACKAGES.gz&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/workflows/bin/windows/contrib/4.0/PACKAGES.rds&#39;: HTTP status was &#39;404 Not Found&#39;cannot open URL &#39;https://bioconductor.org/packages/3.12/workflows/bin/windows/contrib/4.0/PACKAGES.gz&#39;: HTTP status was &#39;404 Not Found&#39;</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG4gIFRoZXJlIGFyZSBiaW5hcnkgdmVyc2lvbnMgYXZhaWxhYmxlIGJ1dCB0aGUgc291cmNlIHZlcnNpb25zIGFyZVxuICBsYXRlcjpcbiJ9 -->
-<pre><code>
-  There are binary versions available but the source versions are
-  later:</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbImRhdGEuZnJhbWUiXSwibnJvdyI6NiwibmNvbCI6M30sInJkZiI6Ikg0c0lBQUFBQUFBQUJtMVJ5MjdDTUJBMEpBRVJxUy8xTzJMbEliNmdQZmJRMGd1M2FnbUdXaVIyWkR0cSsvTzBkdkNDRzNHdzdObkg3TTU0OWJ5dTBuVktDSWxJYkUrVTJDZVpQYjBXNWJJa0pKNWFOTEdaaGJ1L2JkWGpVRXJJdlN2emlhU2dKYzB2SUtkRkNFb0VwUzA3ZzV4VzU1NlpKY2l6OGhwdHdGU0VNd0xnYUt1UXRyaGs4aXkzajNSZ2RVcXVubjhxRXdFdDAzNlZDQmZjY0FIcUI1R1d2YXFaUncrQ3NhMytxR1hiOFFZTWwyTEV1RkR5aTRhc0tIQ3hnZnJRU1dXMEQ4eDNvRTBMbllmeG5pbURxZFg3MndzM09EVFdvTEhyVm5kZ3RBRkRlOE1iUGRaVE42NzBOQm1ENlJZTTBKMnlTMWwwSExYTVplZGsyS2FwKys1azFEeFJvOEJkTDV5OGJWWi85dUtRTGIzajZQQ052MmZCT3pxTm5QNTZxZ1N0WldMUEJhcE1HdGl3Qm1WYUd3Y1hhYWU0UUY5U0c5WFVTQU5ZbDlheXdjaWdqUnovQUY4bFFPem1BZ0FBIn0= -->
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["binary"],"name":[1],"type":["chr"],"align":["left"]},{"label":["source"],"name":[2],"type":["chr"],"align":["left"]},{"label":["needs_compilation"],"name":[3],"type":["lgl"],"align":["right"]}],"data":[{"1":"1.2.0","2":"1.2.1","3":"TRUE","_rn_":"backports"},{"1":"1.0.1","2":"1.1.0","3":"TRUE","_rn_":"fastmap"},{"1":"1.0.2","2":"1.1.0","3":"TRUE","_rn_":"gert"},{"1":"2.2.2","2":"2.2.3","3":"TRUE","_rn_":"RSQLite"},{"1":"0.3.0","2":"0.3.1","3":"TRUE","_rn_":"sass"},{"1":"1.20-2","2":"2.0-0","3":"TRUE","_rn_":"spatstat.utils"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[6]},"pages":{}}}
-  </script>
-</div>
-<!-- rnb-frame-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG4gIEJpbmFyaWVzIHdpbGwgYmUgaW5zdGFsbGVkXG4ifQ== -->
-<pre><code>
-  Binaries will be installed</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoidHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL2JhY2twb3J0c18xLjIuMC56aXAnXG5Db250ZW50IHR5cGUgJ2FwcGxpY2F0aW9uL3ppcCcgbGVuZ3RoIDk4MTM4IGJ5dGVzICg5NSBLQilcbmRvd25sb2FkZWQgOTUgS0JcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL2NvbG9yc3BhY2VfMi4wLTAuemlwJ1xuQ29udGVudCB0eXBlICdhcHBsaWNhdGlvbi96aXAnIGxlbmd0aCAyNjQ3Mjk1IGJ5dGVzICgyLjUgTUIpXG5kb3dubG9hZGVkIDIuNSBNQlxuXG50cnlpbmcgVVJMICdodHRwczovL2NyYW4ucnN0dWRpby5jb20vYmluL3dpbmRvd3MvY29udHJpYi80LjAvZGF0YS50YWJsZV8xLjEzLjYuemlwJ1xuQ29udGVudCB0eXBlICdhcHBsaWNhdGlvbi96aXAnIGxlbmd0aCAyNjAwMDg5IGJ5dGVzICgyLjUgTUIpXG5kb3dubG9hZGVkIDIuNSBNQlxuXG50cnlpbmcgVVJMICdodHRwczovL2NyYW4ucnN0dWRpby5jb20vYmluL3dpbmRvd3MvY29udHJpYi80LjAvZGVsZGlyXzAuMi05LnppcCdcbkNvbnRlbnQgdHlwZSAnYXBwbGljYXRpb24vemlwJyBsZW5ndGggMzMwNDc3IGJ5dGVzICgzMjIgS0IpXG5kb3dubG9hZGVkIDMyMiBLQlxuXG50cnlpbmcgVVJMICdodHRwczovL2NyYW4ucnN0dWRpby5jb20vYmluL3dpbmRvd3MvY29udHJpYi80LjAvZmFzdG1hcF8xLjAuMS56aXAnXG5Db250ZW50IHR5cGUgJ2FwcGxpY2F0aW9uL3ppcCcgbGVuZ3RoIDE5NjYyMiBieXRlcyAoMTkyIEtCKVxuZG93bmxvYWRlZCAxOTIgS0JcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL2dlcnRfMS4wLjIuemlwJ1xuQ29udGVudCB0eXBlICdhcHBsaWNhdGlvbi96aXAnIGxlbmd0aCAzNjUxMTM1IGJ5dGVzICgzLjUgTUIpXG5kb3dubG9hZGVkIDMuNSBNQlxuXG50cnlpbmcgVVJMICdodHRwczovL2NyYW4ucnN0dWRpby5jb20vYmluL3dpbmRvd3MvY29udHJpYi80LjAvZ2dyZXBlbF8wLjkuMS56aXAnXG5Db250ZW50IHR5cGUgJ2FwcGxpY2F0aW9uL3ppcCcgbGVuZ3RoIDExMTEyMjcgYnl0ZXMgKDEuMSBNQilcbmRvd25sb2FkZWQgMS4xIE1CXG5cbnRyeWluZyBVUkwgJ2h0dHBzOi8vY3Jhbi5yc3R1ZGlvLmNvbS9iaW4vd2luZG93cy9jb250cmliLzQuMC9odHRwdXZfMS41LjUuemlwJ1xuQ29udGVudCB0eXBlICdhcHBsaWNhdGlvbi96aXAnIGxlbmd0aCAxNzA3ODM1IGJ5dGVzICgxLjYgTUIpXG5kb3dubG9hZGVkIDEuNiBNQlxuXG50cnlpbmcgVVJMICdodHRwczovL2NyYW4ucnN0dWRpby5jb20vYmluL3dpbmRvd3MvY29udHJpYi80LjAvanNvbmxpdGVfMS43LjIuemlwJ1xuQ29udGVudCB0eXBlICdhcHBsaWNhdGlvbi96aXAnIGxlbmd0aCA1NDM3MDYgYnl0ZXMgKDUzMCBLQilcbmRvd25sb2FkZWQgNTMwIEtCXG5cbnRyeWluZyBVUkwgJ2h0dHBzOi8vY3Jhbi5yc3R1ZGlvLmNvbS9iaW4vd2luZG93cy9jb250cmliLzQuMC9SY3BwXzEuMC42LnppcCdcbkNvbnRlbnQgdHlwZSAnYXBwbGljYXRpb24vemlwJyBsZW5ndGggMzI1MzM1MCBieXRlcyAoMy4xIE1CKVxuZG93bmxvYWRlZCAzLjEgTUJcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL1JjcHBBbm5veV8wLjAuMTguemlwJ1xuQ29udGVudCB0eXBlICdhcHBsaWNhdGlvbi96aXAnIGxlbmd0aCAxMTgwNjg3IGJ5dGVzICgxLjEgTUIpXG5kb3dubG9hZGVkIDEuMSBNQlxuXG50cnlpbmcgVVJMICdodHRwczovL2NyYW4ucnN0dWRpby5jb20vYmluL3dpbmRvd3MvY29udHJpYi80LjAvUlNRTGl0ZV8yLjIuMi56aXAnXG5Db250ZW50IHR5cGUgJ2FwcGxpY2F0aW9uL3ppcCcgbGVuZ3RoIDIzOTk0NTAgYnl0ZXMgKDIuMyBNQilcbmRvd25sb2FkZWQgMi4zIE1CXG5cbnRyeWluZyBVUkwgJ2h0dHBzOi8vY3Jhbi5yc3R1ZGlvLmNvbS9iaW4vd2luZG93cy9jb250cmliLzQuMC9zYXNzXzAuMy4wLnppcCdcbkNvbnRlbnQgdHlwZSAnYXBwbGljYXRpb24vemlwJyBsZW5ndGggMjQyOTEzMSBieXRlcyAoMi4zIE1CKVxuZG93bmxvYWRlZCAyLjMgTUJcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL3NjdHJhbnNmb3JtXzAuMy4yLnppcCdcbkNvbnRlbnQgdHlwZSAnYXBwbGljYXRpb24vemlwJyBsZW5ndGggMTE2MTExMiBieXRlcyAoMS4xIE1CKVxuZG93bmxvYWRlZCAxLjEgTUJcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL3NwYXRzdGF0LnV0aWxzXzEuMjAtMi56aXAnXG5Db250ZW50IHR5cGUgJ2FwcGxpY2F0aW9uL3ppcCcgbGVuZ3RoIDM0OTM1NSBieXRlcyAoMzQxIEtCKVxuZG93bmxvYWRlZCAzNDEgS0JcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL3ZjdHJzXzAuMy42LnppcCdcbkNvbnRlbnQgdHlwZSAnYXBwbGljYXRpb24vemlwJyBsZW5ndGggMTIzOTIzNSBieXRlcyAoMS4yIE1CKVxuZG93bmxvYWRlZCAxLjIgTUJcblxudHJ5aW5nIFVSTCAnaHR0cHM6Ly9jcmFuLnJzdHVkaW8uY29tL2Jpbi93aW5kb3dzL2NvbnRyaWIvNC4wL3hmdW5fMC4yMC56aXAnXG5Db250ZW50IHR5cGUgJ2FwcGxpY2F0aW9uL3ppcCcgbGVuZ3RoIDMwOTEzOCBieXRlcyAoMzAxIEtCKVxuZG93bmxvYWRlZCAzMDEgS0JcbiJ9 -->
-<pre><code>trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/backports_1.2.0.zip&#39;
-Content type &#39;application/zip&#39; length 98138 bytes (95 KB)
-downloaded 95 KB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/colorspace_2.0-0.zip&#39;
-Content type &#39;application/zip&#39; length 2647295 bytes (2.5 MB)
-downloaded 2.5 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/data.table_1.13.6.zip&#39;
-Content type &#39;application/zip&#39; length 2600089 bytes (2.5 MB)
-downloaded 2.5 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/deldir_0.2-9.zip&#39;
-Content type &#39;application/zip&#39; length 330477 bytes (322 KB)
-downloaded 322 KB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/fastmap_1.0.1.zip&#39;
-Content type &#39;application/zip&#39; length 196622 bytes (192 KB)
-downloaded 192 KB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/gert_1.0.2.zip&#39;
-Content type &#39;application/zip&#39; length 3651135 bytes (3.5 MB)
-downloaded 3.5 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/ggrepel_0.9.1.zip&#39;
-Content type &#39;application/zip&#39; length 1111227 bytes (1.1 MB)
-downloaded 1.1 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/httpuv_1.5.5.zip&#39;
-Content type &#39;application/zip&#39; length 1707835 bytes (1.6 MB)
-downloaded 1.6 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/jsonlite_1.7.2.zip&#39;
-Content type &#39;application/zip&#39; length 543706 bytes (530 KB)
-downloaded 530 KB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/Rcpp_1.0.6.zip&#39;
-Content type &#39;application/zip&#39; length 3253350 bytes (3.1 MB)
-downloaded 3.1 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/RcppAnnoy_0.0.18.zip&#39;
-Content type &#39;application/zip&#39; length 1180687 bytes (1.1 MB)
-downloaded 1.1 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/RSQLite_2.2.2.zip&#39;
-Content type &#39;application/zip&#39; length 2399450 bytes (2.3 MB)
-downloaded 2.3 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/sass_0.3.0.zip&#39;
-Content type &#39;application/zip&#39; length 2429131 bytes (2.3 MB)
-downloaded 2.3 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/sctransform_0.3.2.zip&#39;
-Content type &#39;application/zip&#39; length 1161112 bytes (1.1 MB)
-downloaded 1.1 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/spatstat.utils_1.20-2.zip&#39;
-Content type &#39;application/zip&#39; length 349355 bytes (341 KB)
-downloaded 341 KB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/vctrs_0.3.6.zip&#39;
-Content type &#39;application/zip&#39; length 1239235 bytes (1.2 MB)
-downloaded 1.2 MB
-
-trying URL &#39;https://cran.rstudio.com/bin/windows/contrib/4.0/xfun_0.20.zip&#39;
-Content type &#39;application/zip&#39; length 309138 bytes (301 KB)
-downloaded 301 KB</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhiYWNrcG9ydHPigJkgc3VjY2Vzc2Z1bGx5IHVucGFja2VkIGFuZCBNRDUgc3VtcyBjaGVja2VkXG4ifQ== -->
-<pre><code>package ‘backports’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFiYWNrcG9ydHPjpLzjuLJwcm9ibGVtIGNvcHlpbmcgQzpcXFVzZXJzXFxTY290dFxcRG9jdW1lbnRzXFxSXFx3aW4tbGlicmFyeVxcNC4wXFwwMExPQ0tcXGJhY2twb3J0c1xcbGlic1xceDY0XFxiYWNrcG9ydHMuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcYmFja3BvcnRzXFxsaWJzXFx4NjRcXGJhY2twb3J0cy5kbGw6IFBlcm1pc3Npb24gZGVuaWVkcmVzdG9yZWQg46S847ixYmFja3BvcnRz46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱backports㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\backports\libs\x64\backports.dll to C:\Users\Scott\Documents\R\win-library\4.0\backports\libs\x64\backports.dll: Permission deniedrestored 㤼㸱backports㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhjb2xvcnNwYWNl4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuIn0= -->
-<pre><code>package ‘colorspace’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFjb2xvcnNwYWNl46S847iycHJvYmxlbSBjb3B5aW5nIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcMDBMT0NLXFxjb2xvcnNwYWNlXFxsaWJzXFx4NjRcXGNvbG9yc3BhY2UuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcY29sb3JzcGFjZVxcbGlic1xceDY0XFxjb2xvcnNwYWNlLmRsbDogUGVybWlzc2lvbiBkZW5pZWRyZXN0b3JlZCDjpLzjuLFjb2xvcnNwYWNl46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱colorspace㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\colorspace\libs\x64\colorspace.dll to C:\Users\Scott\Documents\R\win-library\4.0\colorspace\libs\x64\colorspace.dll: Permission deniedrestored 㤼㸱colorspace㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhkYXRhLnRhYmxl4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuIn0= -->
-<pre><code>package ‘data.table’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFkYXRhLnRhYmxl46S847iycHJvYmxlbSBjb3B5aW5nIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcMDBMT0NLXFxkYXRhLnRhYmxlXFxsaWJzXFx4NjRcXGRhdGF0YWJsZS5kbGwgdG8gQzpcXFVzZXJzXFxTY290dFxcRG9jdW1lbnRzXFxSXFx3aW4tbGlicmFyeVxcNC4wXFxkYXRhLnRhYmxlXFxsaWJzXFx4NjRcXGRhdGF0YWJsZS5kbGw6IFBlcm1pc3Npb24gZGVuaWVkcmVzdG9yZWQg46S847ixZGF0YS50YWJsZeOkvOO4slxuIn0= -->
-<pre><code>cannot remove prior installation of package 㤼㸱data.table㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\data.table\libs\x64\datatable.dll to C:\Users\Scott\Documents\R\win-library\4.0\data.table\libs\x64\datatable.dll: Permission deniedrestored 㤼㸱data.table㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhkZWxkaXLigJkgc3VjY2Vzc2Z1bGx5IHVucGFja2VkIGFuZCBNRDUgc3VtcyBjaGVja2VkXG4ifQ== -->
-<pre><code>package ‘deldir’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFkZWxkaXLjpLzjuLJwcm9ibGVtIGNvcHlpbmcgQzpcXFVzZXJzXFxTY290dFxcRG9jdW1lbnRzXFxSXFx3aW4tbGlicmFyeVxcNC4wXFwwMExPQ0tcXGRlbGRpclxcbGlic1xceDY0XFxkZWxkaXIuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcZGVsZGlyXFxsaWJzXFx4NjRcXGRlbGRpci5kbGw6IFBlcm1pc3Npb24gZGVuaWVkcmVzdG9yZWQg46S847ixZGVsZGly46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱deldir㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\deldir\libs\x64\deldir.dll to C:\Users\Scott\Documents\R\win-library\4.0\deldir\libs\x64\deldir.dll: Permission deniedrestored 㤼㸱deldir㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhmYXN0bWFw4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuIn0= -->
-<pre><code>package ‘fastmap’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFmYXN0bWFw46S847iycHJvYmxlbSBjb3B5aW5nIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcMDBMT0NLXFxmYXN0bWFwXFxsaWJzXFx4NjRcXGZhc3RtYXAuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcZmFzdG1hcFxcbGlic1xceDY0XFxmYXN0bWFwLmRsbDogUGVybWlzc2lvbiBkZW5pZWRyZXN0b3JlZCDjpLzjuLFmYXN0bWFw46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱fastmap㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\fastmap\libs\x64\fastmap.dll to C:\Users\Scott\Documents\R\win-library\4.0\fastmap\libs\x64\fastmap.dll: Permission deniedrestored 㤼㸱fastmap㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhnZXJ04oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxucGFja2FnZSDigJhnZ3JlcGVs4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuIn0= -->
-<pre><code>package ‘gert’ successfully unpacked and MD5 sums checked
-package ‘ggrepel’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFnZ3JlcGVs46S847iycHJvYmxlbSBjb3B5aW5nIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcMDBMT0NLXFxnZ3JlcGVsXFxsaWJzXFx4NjRcXGdncmVwZWwuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcZ2dyZXBlbFxcbGlic1xceDY0XFxnZ3JlcGVsLmRsbDogUGVybWlzc2lvbiBkZW5pZWRyZXN0b3JlZCDjpLzjuLFnZ3JlcGVs46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱ggrepel㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\ggrepel\libs\x64\ggrepel.dll to C:\Users\Scott\Documents\R\win-library\4.0\ggrepel\libs\x64\ggrepel.dll: Permission deniedrestored 㤼㸱ggrepel㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhodHRwdXbigJkgc3VjY2Vzc2Z1bGx5IHVucGFja2VkIGFuZCBNRDUgc3VtcyBjaGVja2VkXG4ifQ== -->
-<pre><code>package ‘httpuv’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFodHRwdXbjpLzjuLJwcm9ibGVtIGNvcHlpbmcgQzpcXFVzZXJzXFxTY290dFxcRG9jdW1lbnRzXFxSXFx3aW4tbGlicmFyeVxcNC4wXFwwMExPQ0tcXGh0dHB1dlxcbGlic1xceDY0XFxodHRwdXYuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcaHR0cHV2XFxsaWJzXFx4NjRcXGh0dHB1di5kbGw6IFBlcm1pc3Npb24gZGVuaWVkcmVzdG9yZWQg46S847ixaHR0cHV246S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱httpuv㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\httpuv\libs\x64\httpuv.dll to C:\Users\Scott\Documents\R\win-library\4.0\httpuv\libs\x64\httpuv.dll: Permission deniedrestored 㤼㸱httpuv㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhqc29ubGl0ZeKAmSBzdWNjZXNzZnVsbHkgdW5wYWNrZWQgYW5kIE1ENSBzdW1zIGNoZWNrZWRcbiJ9 -->
-<pre><code>package ‘jsonlite’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFqc29ubGl0ZeOkvOO4snByb2JsZW0gY29weWluZyBDOlxcVXNlcnNcXFNjb3R0XFxEb2N1bWVudHNcXFJcXHdpbi1saWJyYXJ5XFw0LjBcXDAwTE9DS1xcanNvbmxpdGVcXGxpYnNcXHg2NFxcanNvbmxpdGUuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcanNvbmxpdGVcXGxpYnNcXHg2NFxcanNvbmxpdGUuZGxsOiBQZXJtaXNzaW9uIGRlbmllZHJlc3RvcmVkIOOkvOO4sWpzb25saXRl46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱jsonlite㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\jsonlite\libs\x64\jsonlite.dll to C:\Users\Scott\Documents\R\win-library\4.0\jsonlite\libs\x64\jsonlite.dll: Permission deniedrestored 㤼㸱jsonlite㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhSY3Bw4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuIn0= -->
-<pre><code>package ‘Rcpp’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFSY3Bw46S847iycHJvYmxlbSBjb3B5aW5nIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcMDBMT0NLXFxSY3BwXFxsaWJzXFx4NjRcXFJjcHAuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcUmNwcFxcbGlic1xceDY0XFxSY3BwLmRsbDogUGVybWlzc2lvbiBkZW5pZWRyZXN0b3JlZCDjpLzjuLFSY3Bw46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱Rcpp㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\Rcpp\libs\x64\Rcpp.dll to C:\Users\Scott\Documents\R\win-library\4.0\Rcpp\libs\x64\Rcpp.dll: Permission deniedrestored 㤼㸱Rcpp㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhSY3BwQW5ub3nigJkgc3VjY2Vzc2Z1bGx5IHVucGFja2VkIGFuZCBNRDUgc3VtcyBjaGVja2VkXG4ifQ== -->
-<pre><code>package ‘RcppAnnoy’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFSY3BwQW5ub3njpLzjuLJwcm9ibGVtIGNvcHlpbmcgQzpcXFVzZXJzXFxTY290dFxcRG9jdW1lbnRzXFxSXFx3aW4tbGlicmFyeVxcNC4wXFwwMExPQ0tcXFJjcHBBbm5veVxcbGlic1xceDY0XFxSY3BwQW5ub3kuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcUmNwcEFubm95XFxsaWJzXFx4NjRcXFJjcHBBbm5veS5kbGw6IFBlcm1pc3Npb24gZGVuaWVkcmVzdG9yZWQg46S847ixUmNwcEFubm9546S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱RcppAnnoy㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\RcppAnnoy\libs\x64\RcppAnnoy.dll to C:\Users\Scott\Documents\R\win-library\4.0\RcppAnnoy\libs\x64\RcppAnnoy.dll: Permission deniedrestored 㤼㸱RcppAnnoy㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhSU1FMaXRl4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxucGFja2FnZSDigJhzYXNz4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxucGFja2FnZSDigJhzY3RyYW5zZm9ybeKAmSBzdWNjZXNzZnVsbHkgdW5wYWNrZWQgYW5kIE1ENSBzdW1zIGNoZWNrZWRcbiJ9 -->
-<pre><code>package ‘RSQLite’ successfully unpacked and MD5 sums checked
-package ‘sass’ successfully unpacked and MD5 sums checked
-package ‘sctransform’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFzY3RyYW5zZm9ybeOkvOO4snByb2JsZW0gY29weWluZyBDOlxcVXNlcnNcXFNjb3R0XFxEb2N1bWVudHNcXFJcXHdpbi1saWJyYXJ5XFw0LjBcXDAwTE9DS1xcc2N0cmFuc2Zvcm1cXGxpYnNcXHg2NFxcc2N0cmFuc2Zvcm0uZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcc2N0cmFuc2Zvcm1cXGxpYnNcXHg2NFxcc2N0cmFuc2Zvcm0uZGxsOiBQZXJtaXNzaW9uIGRlbmllZHJlc3RvcmVkIOOkvOO4sXNjdHJhbnNmb3Jt46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱sctransform㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\sctransform\libs\x64\sctransform.dll to C:\Users\Scott\Documents\R\win-library\4.0\sctransform\libs\x64\sctransform.dll: Permission deniedrestored 㤼㸱sctransform㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJhzcGF0c3RhdC51dGlsc+KAmSBzdWNjZXNzZnVsbHkgdW5wYWNrZWQgYW5kIE1ENSBzdW1zIGNoZWNrZWRcbiJ9 -->
-<pre><code>package ‘spatstat.utils’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLFzcGF0c3RhdC51dGlsc+OkvOO4snByb2JsZW0gY29weWluZyBDOlxcVXNlcnNcXFNjb3R0XFxEb2N1bWVudHNcXFJcXHdpbi1saWJyYXJ5XFw0LjBcXDAwTE9DS1xcc3BhdHN0YXQudXRpbHNcXGxpYnNcXHg2NFxcc3BhdHN0YXQudXRpbHMuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcc3BhdHN0YXQudXRpbHNcXGxpYnNcXHg2NFxcc3BhdHN0YXQudXRpbHMuZGxsOiBQZXJtaXNzaW9uIGRlbmllZHJlc3RvcmVkIOOkvOO4sXNwYXRzdGF0LnV0aWxz46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱spatstat.utils㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\spatstat.utils\libs\x64\spatstat.utils.dll to C:\Users\Scott\Documents\R\win-library\4.0\spatstat.utils\libs\x64\spatstat.utils.dll: Permission deniedrestored 㤼㸱spatstat.utils㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJh2Y3Ryc+KAmSBzdWNjZXNzZnVsbHkgdW5wYWNrZWQgYW5kIE1ENSBzdW1zIGNoZWNrZWRcbiJ9 -->
-<pre><code>package ‘vctrs’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLF2Y3Ryc+OkvOO4snByb2JsZW0gY29weWluZyBDOlxcVXNlcnNcXFNjb3R0XFxEb2N1bWVudHNcXFJcXHdpbi1saWJyYXJ5XFw0LjBcXDAwTE9DS1xcdmN0cnNcXGxpYnNcXHg2NFxcdmN0cnMuZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcdmN0cnNcXGxpYnNcXHg2NFxcdmN0cnMuZGxsOiBQZXJtaXNzaW9uIGRlbmllZHJlc3RvcmVkIOOkvOO4sXZjdHJz46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱vctrs㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\vctrs\libs\x64\vctrs.dll to C:\Users\Scott\Documents\R\win-library\4.0\vctrs\libs\x64\vctrs.dll: Permission deniedrestored 㤼㸱vctrs㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSDigJh4ZnVu4oCZIHN1Y2Nlc3NmdWxseSB1bnBhY2tlZCBhbmQgTUQ1IHN1bXMgY2hlY2tlZFxuIn0= -->
-<pre><code>package ‘xfun’ successfully unpacked and MD5 sums checked</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IHJlbW92ZSBwcmlvciBpbnN0YWxsYXRpb24gb2YgcGFja2FnZSDjpLzjuLF4ZnVu46S847iycHJvYmxlbSBjb3B5aW5nIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxcMDBMT0NLXFx4ZnVuXFxsaWJzXFx4NjRcXHhmdW4uZGxsIHRvIEM6XFxVc2Vyc1xcU2NvdHRcXERvY3VtZW50c1xcUlxcd2luLWxpYnJhcnlcXDQuMFxceGZ1blxcbGlic1xceDY0XFx4ZnVuLmRsbDogUGVybWlzc2lvbiBkZW5pZWRyZXN0b3JlZCDjpLzjuLF4ZnVu46S847iyXG4ifQ== -->
-<pre><code>cannot remove prior installation of package 㤼㸱xfun㤼㸲problem copying C:\Users\Scott\Documents\R\win-library\4.0\00LOCK\xfun\libs\x64\xfun.dll to C:\Users\Scott\Documents\R\win-library\4.0\xfun\libs\x64\xfun.dll: Permission deniedrestored 㤼㸱xfun㤼㸲</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5UaGUgZG93bmxvYWRlZCBiaW5hcnkgcGFja2FnZXMgYXJlIGluXG5cdEM6XFxVc2Vyc1xcU2NvdHRcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxSdG1wa1R6RHNVXFxkb3dubG9hZGVkX3BhY2thZ2VzXG4ifQ== -->
-<pre><code>
-The downloaded binary packages are in
-    C:\Users\Scott\AppData\Local\Temp\RtmpkTzDsU\downloaded_packages</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShiaW9tYVJ0KVxuXG4jIENyZWF0ZSB0aGUgbW91c2UgYW5kIGh1bWFuIGRhdGFiYXNlXG5odW1hbiA9IHVzZU1hcnQoXCJlbnNlbWJsXCIsIGRhdGFzZXQ9XCJoc2FwaWVuc19nZW5lX2Vuc2VtYmxcIilcbm1vdXNlID0gdXNlTWFydChcImVuc2VtYmxcIiwgZGF0YXNldD1cIm1tdXNjdWx1c19nZW5lX2Vuc2VtYmxcIilcbmBgYCJ9 -->
-<pre class="r"><code>library(biomaRt)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ0Jpb2NNYW5hZ2VyJylcbiNCaW9jTWFuYWdlcjo6aW5zdGFsbChcImJpb21hUnRcIiwgXG4jICAgICAgICAgICAgICAgICAgICAgZGVwZW5kZW5jaWVzPVRSVUUsXG4jICAgICAgICAgICAgICAgICAgICAgSU5TVEFMTF9vcHRzPSctLW5vLWxvY2snKVxubGlicmFyeShiaW9tYVJ0KVxuXG4jIENyZWF0ZSB0aGUgbW91c2UgYW5kIGh1bWFuIGRhdGFiYXNlXG5odW1hbiA9IHVzZU1hcnQoXCJlbnNlbWJsXCIsIGRhdGFzZXQ9XCJoc2FwaWVuc19nZW5lX2Vuc2VtYmxcIilcbm1vdXNlID0gdXNlTWFydChcImVuc2VtYmxcIiwgZGF0YXNldD1cIm1tdXNjdWx1c19nZW5lX2Vuc2VtYmxcIilcbmBgYCJ9 -->
+<pre class="r"><code>#install.packages(&#39;BiocManager&#39;)
+#BiocManager::install(&quot;biomaRt&quot;, 
+#                     dependencies=TRUE,
+#                     INSTALL_opts=&#39;--no-lock&#39;)
+library(biomaRt)
 
 # Create the mouse and human database
 human = useMart(&quot;ensembl&quot;, dataset=&quot;hsapiens_gene_ensembl&quot;)
@@ -2265,11 +2049,11 @@ mouse = useMart(&quot;ensembl&quot;, dataset=&quot;mmusculus_gene_ensembl&quot;)
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSA9IGxpc3QoKVxuZm9yKGkgaW4gMTpsZW5ndGgoY2VsbHR5cGUubGlzdCkpe1xuICB0bXAgPSBkYXRhLmZyYW1lKGNlbGx0eXBlLmxpc3RbW2ldXUBhc3NheXMkUk5BQGNvdW50cylcbiAgY29sbmFtZXModG1wKSA9IGNlbGx0eXBlLmxpc3RbW2ldXUBtZXRhLmRhdGEkRVZFUllUSElOR1xuICB0bXAgPSBjb252ZXJ0TW91c2VHZW5lTGlzdCh0bXAsIGh1bWFuLCBtb3VzZSlcbiAgdG1wJEVuc2VtYmwgPSB0bXAkR2VuZS5zdGFibGUuSURcbiAgZGF0YVtbaV1dID0gdG1wXG59XG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGF0YSA9IGxpc3QoKVxuZm9yKGkgaW4gMTpsZW5ndGgoY2VsbHR5cGUubGlzdCkpe1xuICB0bXAgPSBkYXRhLmZyYW1lKGNlbGx0eXBlLmxpc3RbW2ldXUBhc3NheXMkUk5BQGNvdW50cylcbiAgI2NvbG5hbWVzKHRtcCkgPSBjZWxsdHlwZS5saXN0W1tpXV1AbWV0YS5kYXRhJEVWRVJZVEhJTkdcbiAgdG1wID0gY29udmVydE1vdXNlR2VuZUxpc3QodG1wLCBodW1hbiwgbW91c2UpXG4gIHRtcCRFbnNlbWJsID0gdG1wJEdlbmUuc3RhYmxlLklEXG4gIGRhdGFbW2ldXSA9IHRtcFxufVxuYGBgIn0= -->
 <pre class="r"><code>data = list()
 for(i in 1:length(celltype.list)){
   tmp = data.frame(celltype.list[[i]]@assays$RNA@counts)
-  colnames(tmp) = celltype.list[[i]]@meta.data$EVERYTHING
+  #colnames(tmp) = celltype.list[[i]]@meta.data$EVERYTHING
   tmp = convertMouseGeneList(tmp, human, mouse)
   tmp$Ensembl = tmp$Gene.stable.ID
   data[[i]] = tmp
@@ -2277,17 +2061,31 @@ for(i in 1:length(celltype.list)){
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>Save all.</p>
+<p>This code specifically grabs the neutrophil data and saves it as a .csv file.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaW5zdGFsbC5wYWNrYWdlcygnd3JpdGV4bCcpXG5gYGAifQ== -->
-<pre class="r"><code>install.packages(&#39;writexl&#39;)</code></pre>
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Create a map of the original names and the names used later</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxub3JpZ19jb2wgPSBjb2xuYW1lcyhjZWxsdHlwZS5saXN0W1sxMF1dQGFzc2F5cyRSTkFAY291bnRzKVxuZmluYWxfY29sID0gY29sbmFtZXMoY2VsbHR5cGUubGlzdFtbMTBdXUBtZXRhLmRhdGEkRVZFUllUSElORylcbm1hcF9vZl9jb2xzID0gZGF0YS5mcmFtZShvcmlnX2NvbCwgZmluYWxfY29sKVxuYGBgIn0= -->
+<pre class="r"><code>orig_col = colnames(celltype.list[[10]]@assays$RNA@counts)
+final_col = colnames(celltype.list[[10]]@meta.data$EVERYTHING)
+map_of_cols = data.frame(orig_col, final_col)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gaW5zdGFsbC5wYWNrYWdlcyA6IFVwZGF0aW5nIGxvYWRlZCBwYWNrYWdlc1xuIn0= -->
-<pre><code>Error in install.packages : Updating loaded packages</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gZGF0YS5mcmFtZShvcmlnX2NvbCwgZmluYWxfY29sKSA6IFxuICBhcmd1bWVudHMgaW1wbHkgZGlmZmVyaW5nIG51bWJlciBvZiByb3dzOiAzMTc1LCAwXG4ifQ== -->
+<pre><code>Error in data.frame(orig_col, final_col) : 
+  arguments imply differing number of rows: 3175, 0</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxud3JpdGV4bDo6d3JpdGVfeGxzeChcbiAgeD1saXN0KFN0cm9tYWwgICAgICAgICAgID0gZGF0YVtbMV1dLFxuICAgICAgIEFsdmVvbGFyTWFjcm9waGFnZXMgPSBkYXRhW1syXV0sXG4gICAgICAgTWFjcm9waGFnZXMgICAgICAgICA9IGRhdGFbWzNdXSxcbiAgICAgICBNb25vY3l0ZXMgICAgICAgICAgID0gZGF0YVtbNF1dLFxuICAgICAgIFBuZXVtb2N5dGVzICAgICAgICAgPSBkYXRhW1s1XV0sXG4gICAgICAgQmNlbGxzICAgICAgICAgICAgICA9IGRhdGFbWzZdXSxcbiAgICAgICBHcmFudWxvY3l0ZXMgICAgICAgID0gZGF0YVtbN11dLFxuICAgICAgIFRjZWxscyAgICAgICAgICAgICAgPSBkYXRhW1s4XV0sXG4gICAgICAgRGVuZHJpdGljICAgICAgICAgICA9IGRhdGFbWzldXSxcbiAgICAgICBOZXV0cm9waGlscyAgICAgICAgID0gZGF0YVtbMTBdXSxcbiAgICAgICBOSyAgICAgICAgICAgICAgICAgID0gZGF0YVtbMTFdXSxcbiAgICAgICBFbmRvdGhlbGlhbCAgICAgICAgID0gZGF0YVtbMTJdXSxcbiAgICAgICBIU0MgICAgICAgICAgICAgICAgID0gZGF0YVtbMTNdXSksXG4gIHBhdGg9XCJEOi9EYXRhL3NjUk5BU2VxL3NoZWEuY2VsbGRmLnhsc3hcIilcbiNwYXRoPVwiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL2NlbGxkZi54bHN4XCIpXG5cbmBgYCJ9 -->
-<pre class="r"><code>writexl::write_xlsx(
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>And this code save all of the data into an excel sheet.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI2luc3RhbGwucGFja2FnZXMoJ3dyaXRleGwnKVxud3JpdGV4bDo6d3JpdGVfeGxzeChcbiAgeD1saXN0KFN0cm9tYWwgICAgICAgICAgID0gZGF0YVtbMV1dLFxuICAgICAgIEFsdmVvbGFyTWFjcm9waGFnZXMgPSBkYXRhW1syXV0sXG4gICAgICAgTWFjcm9waGFnZXMgICAgICAgICA9IGRhdGFbWzNdXSxcbiAgICAgICBNb25vY3l0ZXMgICAgICAgICAgID0gZGF0YVtbNF1dLFxuICAgICAgIFBuZXVtb2N5dGVzICAgICAgICAgPSBkYXRhW1s1XV0sXG4gICAgICAgQmNlbGxzICAgICAgICAgICAgICA9IGRhdGFbWzZdXSxcbiAgICAgICBHcmFudWxvY3l0ZXMgICAgICAgID0gZGF0YVtbN11dLFxuICAgICAgIFRjZWxscyAgICAgICAgICAgICAgPSBkYXRhW1s4XV0sXG4gICAgICAgRGVuZHJpdGljICAgICAgICAgICA9IGRhdGFbWzldXSxcbiAgICAgICBOZXV0cm9waGlscyAgICAgICAgID0gZGF0YVtbMTBdXSxcbiAgICAgICBOSyAgICAgICAgICAgICAgICAgID0gZGF0YVtbMTFdXSxcbiAgICAgICBFbmRvdGhlbGlhbCAgICAgICAgID0gZGF0YVtbMTJdXSxcbiAgICAgICBIU0MgICAgICAgICAgICAgICAgID0gZGF0YVtbMTNdXSksXG4gIHBhdGg9XCJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvY2VsbGRmX2Vuc2VtYmwyLnhsc3hcIilcbiNwYXRoPVwiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL2NlbGxkZi54bHN4XCIpXG5cbmBgYCJ9 -->
+<pre class="r"><code>#install.packages(&#39;writexl&#39;)
+writexl::write_xlsx(
   x=list(Stromal           = data[[1]],
        AlveolarMacrophages = data[[2]],
        Macrophages         = data[[3]],
@@ -2301,14 +2099,14 @@ for(i in 1:length(celltype.list)){
        NK                  = data[[11]],
        Endothelial         = data[[12]],
        HSC                 = data[[13]]),
-  path=&quot;D:/Data/scRNASeq/shea.celldf.xlsx&quot;)
+  path=&quot;D:/Data/scRNASeq/shea/celldf_ensembl2.xlsx&quot;)
 #path=&quot;C:/Users/scott/Data/scRNASeq/shea/celldf.xlsx&quot;)
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkNvbnZlcnQgU2V1cmF0IHRvIFB5dGhvbiBPYmplY3QiDQphdXRob3I6ICJTY290dCBDYW1waXQiDQpvdXRwdXQ6IA0KICBodG1sX25vdGVib29rOg0KICAgIHRvYzogeWVzDQogICAgdGhlbWU6IHVuaXRlZA0KLS0tDQoNCiMgU3VtbWFyeQ0KSSdtIHRyeWluZyB0byB1c2UgYHBoYXRlUmAsIGJ1dCBrZWVwIG9uIHJ1bm5pbmcgaW50byBlcnJvcnMgd2hlbiB0cmFuc2Zvcm1pbmcgdGhlIGRhdGEuIFNvLCBJIHdhbnQgdG8gc2VlIGlmIHRoZSBQeXRob24gcGFja2FnZSBmb3IgUEhBVEUgaXMgbW9yZSBkZXZlbG9wZWQgdGhhbiB0aGUgUiBwYWNrYWdlLiBUbyBkbyB0aGF0LCBJIG5lZWQgdG8gY29udmVydCB0aGUgU2V1cmF0IG9iamVjdCB0byAuaDVhZC4NCg0KYGBge3J9DQpybShsaXN0PWxzKCkpDQpsaWJyYXJ5KFNldXJhdCkNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkoc2NhdGVyKQ0KbGlicmFyeSh0aWR5dmVyc2UpDQoNCiNpbnN0YWxsLnBhY2thZ2VzKCJkZXZ0b29scyIpDQojZGV2dG9vbHM6Omluc3RhbGxfZ2l0aHViKHJlcG89Imhob2VmbGluL2hkZjVyIikNCiNkZXZ0b29sczo6aW5zdGFsbF9naXRodWIocmVwbz0ibW9qYXZlYXp1cmUvbG9vbVIiLCANCiMgICAgICAgICAgICAgICAgICAgICAgICAgcmVmPSJkZXZlbG9wIikNCiNsaWJyYXJ5KGxvb21SKQ0KYGBgDQoNCiMgMS4gU2F2ZSBFbnRpcmUgRGF0YSBBcyBsb29tIEZpbGUNCmBgYHtyfQ0Kcm0obGlzdD1scygpKQ0KDQojIExvYWQgU2V1cmF0IG9iamVjdCBhcyBpcw0KbG9hZCgiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL2x1bmcucm9iaiIsIHZlcmJvc2U9VFJVRSkNCmx1bmcubG9vbSA9IFNldXJhdDo6YXMubG9vbShsdW5nLGZpbGVuYW1lPSJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5sb29tIikNCmBgYA0KDQojIDIuIFNhdmUgRW50aXJlIERhdGFzZXQgYXMgLmNzdiBGaWxlcw0KTm93IHdlJ2xsIHNhdmUgdGhlIGNvdW50IGRhdGEsIHRoZSBnZW5lIHN5bWJvbHMsIGFuZCB0aGUgY2VsbCB0eXBlIGFzIHNldmVyYWwgY3N2IGZpbGVzLg0KYGBge3J9DQpybShsaXN0PWxzKCkpDQoNCiNsb2FkKCJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5yb2JqIiwgdmVyYm9zZT1UUlVFKQ0KbG9hZCgiRDovRGF0YS9zY1JOQVNlcS9zaGVhL2x1bmcucm9iaiIsIHZlcmJvc2U9VFJVRSkNCg0KDQojIENvdW50IGRhdGENCmRhdGEgPSBsdW5nQGFzc2F5cyRSTkFAY291bnRzDQpkYXRhID0gYXMuZGF0YS5mcmFtZShkYXRhKQ0Kd3JpdGVfZGVsaW0oZGF0YSwgDQogICAgICAgICAgICAiRDovRGF0YS9zY1JOQVNlcS9zaGVhL2x1bmcuY3N2IiwNCiAgICAgICAgICAgIGRlbGltPScsJykNCg0KDQoNCiMgR2VuZSBTeW1ib2wgRGF0YQ0KI01HSS5TeW1ib2wgPSBhcy5kYXRhLmZyYW1lKHJvd25hbWVzKGRhdGEpKQ0KI3dyaXRlX2RlbGltKE1HSS5TeW1ib2wsIA0KIyAgICAgICAgICAgICJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvc3ltYm9sLmNzdiIsDQojICAgICAgICAgICAgZGVsaW09IiwiKQ0KDQojIENlbGwgaWRlbnRpZmljYXRpb24gZGF0YQ0KI2FjdGl2ZV9pbmRlbnQgPSBhcy5kYXRhLmZyYW1lKGx1bmdAYWN0aXZlLmlkZW50KQ0KI2FjdGl2ZV9pbmRlbnQkdHJ1ZV9pZGVudCA9IHJvd25hbWVzKGFjdGl2ZV9pbmRlbnQpDQojcm93bmFtZXMoYWN0aXZlX2luZGVudCkgPSBOVUxMDQojd3JpdGVfZGVsaW0oeD1hY3RpdmVfaW5kZW50LA0KIyAgICAgICAgICAgIGZpbGU9IkM6L1VzZXJzL3Njb3R0L0RhdGEvc2NSTkFTZXEvc2hlYS9hY3RpdmVfaWRlbnQuY3N2IiwNCiMgICAgICAgICAgICBkZWxpbT0nLCcpDQpgYGANCg0KIyAzLiBTYXZlIFN1YnNldHMgYXMgU2VwYXJhdGUgU2hlZXRzIGluIGFuIEV4Y2VsIGZpbGUNClRvIHBlcmZvcm0gZGF0YSBpbXB1dGF0aW9uIGFuZCB0byBzYXZlIG9uIG1lbW9yeSwgbGV0J3Mgc2VwYXJhdGUgdGhlIGRhdGEgYnkgY2VsbCB0eXBlcy4NCmBgYHtyfQ0Kcm0obGlzdD1scygpKQ0KDQojIEFDTFgNCiNsb2FkKCJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5yb2JqIiwgdmVyYm9zZT1UUlVFKQ0KIyBEZWxsDQpsb2FkKCJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5yb2JqIiwgdmVyYm9zZT1UUlVFKQ0KDQpjZWxsdHlwZS5saXN0ID0gU3BsaXRPYmplY3QobHVuZywgc3BsaXQuYnk9IkNlbGxUeXBlIikNCmBgYA0KDQpgYGB7cn0NCiMgTWFrZSBhIGZ1bmN0aW9uIHRoYXQgbWFwcyBnZW5lcyB1c2luZyB0d28gcmVmZXJlbmNlIGRhdGFiYXNlcw0KY29udmVydE1vdXNlR2VuZUxpc3QgPSBmdW5jdGlvbihnZW5lX29iaiwgZGIxLCBkYjIpew0KICBvcnRob2xvZ3MgPSBnZXRMRFMoYXR0cmlidXRlcz1jKCJtZ2lfc3ltYm9sIiksIGZpbHRlcnM9Im1naV9zeW1ib2wiLCANCiAgICAgICAgICAgICAgICAgICB2YWx1ZXM9cm93bmFtZXMoZ2VuZV9vYmopLCBtYXJ0PWRiMiwgDQogICAgICAgICAgICAgICAgICAgYXR0cmlidXRlc0w9YygiaGduY19zeW1ib2wiLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJlbnRyZXpnZW5lX2lkIiwgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiZW5zZW1ibF9nZW5lX2lkIiksIG1hcnRMPWRiMSwgDQogICAgICAgICAgICAgICAgICAgdW5pcXVlUm93cz1UUlVFKQ0KICBtYXBwZWRfZ2VuZV9vYmogPSBtZXJnZShvcnRob2xvZ3MsIGdlbmVfb2JqLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgYnkueD0nTUdJLnN5bWJvbCcsIGJ5Lnk9J3Jvdy5uYW1lcycpDQogIHJldHVybihtYXBwZWRfZ2VuZV9vYmopDQp9DQpgYGANCg0KYGBge3J9DQppbnN0YWxsLnBhY2thZ2VzKCdCaW9jTWFuYWdlcicpDQpCaW9jTWFuYWdlcjo6aW5zdGFsbCgiYmlvbWFSdCIsIA0KICAgICAgICAgICAgICAgICAgICAgZGVwZW5kZW5jaWVzPVRSVUUsDQogICAgICAgICAgICAgICAgICAgICBJTlNUQUxMX29wdHM9Jy0tbm8tbG9jaycpDQpsaWJyYXJ5KGJpb21hUnQpDQoNCiMgQ3JlYXRlIHRoZSBtb3VzZSBhbmQgaHVtYW4gZGF0YWJhc2UNCmh1bWFuID0gdXNlTWFydCgiZW5zZW1ibCIsIGRhdGFzZXQ9ImhzYXBpZW5zX2dlbmVfZW5zZW1ibCIpDQptb3VzZSA9IHVzZU1hcnQoImVuc2VtYmwiLCBkYXRhc2V0PSJtbXVzY3VsdXNfZ2VuZV9lbnNlbWJsIikNCmBgYA0KDQpgYGB7cn0NCmRhdGEgPSBsaXN0KCkNCmZvcihpIGluIDE6bGVuZ3RoKGNlbGx0eXBlLmxpc3QpKXsNCiAgdG1wID0gZGF0YS5mcmFtZShjZWxsdHlwZS5saXN0W1tpXV1AYXNzYXlzJFJOQUBjb3VudHMpDQogIGNvbG5hbWVzKHRtcCkgPSBjZWxsdHlwZS5saXN0W1tpXV1AbWV0YS5kYXRhJEVWRVJZVEhJTkcNCiAgdG1wID0gY29udmVydE1vdXNlR2VuZUxpc3QodG1wLCBodW1hbiwgbW91c2UpDQogIHRtcCRFbnNlbWJsID0gdG1wJEdlbmUuc3RhYmxlLklEDQogIGRhdGFbW2ldXSA9IHRtcA0KfQ0KYGBgDQoNClNhdmUgYWxsLg0KYGBge3J9DQojaW5zdGFsbC5wYWNrYWdlcygnd3JpdGV4bCcpDQp3cml0ZXhsOjp3cml0ZV94bHN4KA0KICB4PWxpc3QoU3Ryb21hbCAgICAgICAgICAgPSBkYXRhW1sxXV0sDQogICAgICAgQWx2ZW9sYXJNYWNyb3BoYWdlcyA9IGRhdGFbWzJdXSwNCiAgICAgICBNYWNyb3BoYWdlcyAgICAgICAgID0gZGF0YVtbM11dLA0KICAgICAgIE1vbm9jeXRlcyAgICAgICAgICAgPSBkYXRhW1s0XV0sDQogICAgICAgUG5ldW1vY3l0ZXMgICAgICAgICA9IGRhdGFbWzVdXSwNCiAgICAgICBCY2VsbHMgICAgICAgICAgICAgID0gZGF0YVtbNl1dLA0KICAgICAgIEdyYW51bG9jeXRlcyAgICAgICAgPSBkYXRhW1s3XV0sDQogICAgICAgVGNlbGxzICAgICAgICAgICAgICA9IGRhdGFbWzhdXSwNCiAgICAgICBEZW5kcml0aWMgICAgICAgICAgID0gZGF0YVtbOV1dLA0KICAgICAgIE5ldXRyb3BoaWxzICAgICAgICAgPSBkYXRhW1sxMF1dLA0KICAgICAgIE5LICAgICAgICAgICAgICAgICAgPSBkYXRhW1sxMV1dLA0KICAgICAgIEVuZG90aGVsaWFsICAgICAgICAgPSBkYXRhW1sxMl1dLA0KICAgICAgIEhTQyAgICAgICAgICAgICAgICAgPSBkYXRhW1sxM11dKSwNCiAgcGF0aD0iRDovRGF0YS9zY1JOQVNlcS9zaGVhL2NlbGxkZl9lbnNlbWJsLnhsc3giKQ0KI3BhdGg9IkM6L1VzZXJzL3Njb3R0L0RhdGEvc2NSTkFTZXEvc2hlYS9jZWxsZGYueGxzeCIpDQoNCmBgYA==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkNvbnZlcnQgU2V1cmF0IHRvIFB5dGhvbiBPYmplY3QiDQphdXRob3I6ICJTY290dCBDYW1waXQiDQpvdXRwdXQ6IA0KICBodG1sX25vdGVib29rOg0KICAgIHRvYzogeWVzDQogICAgdGhlbWU6IHVuaXRlZA0KLS0tDQoNCiMgU3VtbWFyeQ0KSSdtIHRyeWluZyB0byB1c2UgYHBoYXRlUmAsIGJ1dCBrZWVwIG9uIHJ1bm5pbmcgaW50byBlcnJvcnMgd2hlbiB0cmFuc2Zvcm1pbmcgdGhlIGRhdGEuIFNvLCBJIHdhbnQgdG8gc2VlIGlmIHRoZSBQeXRob24gcGFja2FnZSBmb3IgUEhBVEUgaXMgbW9yZSBkZXZlbG9wZWQgdGhhbiB0aGUgUiBwYWNrYWdlLiBUbyBkbyB0aGF0LCBJIG5lZWQgdG8gY29udmVydCB0aGUgU2V1cmF0IG9iamVjdCB0byAuaDVhZC4NCg0KYGBge3J9DQpybShsaXN0PWxzKCkpDQpsaWJyYXJ5KFNldXJhdCkNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkoc2NhdGVyKQ0KbGlicmFyeSh0aWR5dmVyc2UpDQoNCiNpbnN0YWxsLnBhY2thZ2VzKCJkZXZ0b29scyIpDQojZGV2dG9vbHM6Omluc3RhbGxfZ2l0aHViKHJlcG89Imhob2VmbGluL2hkZjVyIikNCiNkZXZ0b29sczo6aW5zdGFsbF9naXRodWIocmVwbz0ibW9qYXZlYXp1cmUvbG9vbVIiLCANCiMgICAgICAgICAgICAgICAgICAgICAgICAgcmVmPSJkZXZlbG9wIikNCiNsaWJyYXJ5KGxvb21SKQ0KYGBgDQoNCiMgMS4gU2F2ZSBFbnRpcmUgRGF0YSBBcyBsb29tIEZpbGUNCmBgYHtyfQ0Kcm0obGlzdD1scygpKQ0KDQojIExvYWQgU2V1cmF0IG9iamVjdCBhcyBpcw0KbG9hZCgiQzovVXNlcnMvc2NvdHQvRGF0YS9zY1JOQVNlcS9zaGVhL2x1bmcucm9iaiIsIHZlcmJvc2U9VFJVRSkNCmx1bmcubG9vbSA9IFNldXJhdDo6YXMubG9vbShsdW5nLGZpbGVuYW1lPSJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5sb29tIikNCmBgYA0KDQojIDIuIFNhdmUgRW50aXJlIERhdGFzZXQgYXMgLmNzdiBGaWxlcw0KTm93IHdlJ2xsIHNhdmUgdGhlIGNvdW50IGRhdGEsIHRoZSBnZW5lIHN5bWJvbHMsIGFuZCB0aGUgY2VsbCB0eXBlIGFzIHNldmVyYWwgY3N2IGZpbGVzLg0KYGBge3J9DQpybShsaXN0PWxzKCkpDQoNCiNsb2FkKCJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5yb2JqIiwgdmVyYm9zZT1UUlVFKQ0KbG9hZCgiRDovRGF0YS9zY1JOQVNlcS9zaGVhL2x1bmcucm9iaiIsIHZlcmJvc2U9VFJVRSkNCg0KDQojIENvdW50IGRhdGENCm5ldXQgPSBzdWJzZXQobHVuZywgc3Vic2V0PUNlbGxUeXBlPT0nTmV1dHJvcGhpbHMnKQ0KbmV1dCA9IG5ldXRAYXNzYXlzJFJOQUBjb3VudHMNCm5ldXQgPSBhcy5kYXRhLmZyYW1lKG5ldXQpDQp3cml0ZV9kZWxpbShuZXV0LCANCiAgICAgICAgICAgICJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5jc3YiLA0KICAgICAgICAgICAgZGVsaW09JywnKQ0KDQoNCiMgR2VuZSBTeW1ib2wgRGF0YQ0KI01HSS5TeW1ib2wgPSBhcy5kYXRhLmZyYW1lKHJvd25hbWVzKGRhdGEpKQ0KI3dyaXRlX2RlbGltKE1HSS5TeW1ib2wsIA0KIyAgICAgICAgICAgICJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvc3ltYm9sLmNzdiIsDQojICAgICAgICAgICAgZGVsaW09IiwiKQ0KDQojIENlbGwgaWRlbnRpZmljYXRpb24gZGF0YQ0KI2FjdGl2ZV9pbmRlbnQgPSBhcy5kYXRhLmZyYW1lKGx1bmdAYWN0aXZlLmlkZW50KQ0KI2FjdGl2ZV9pbmRlbnQkdHJ1ZV9pZGVudCA9IHJvd25hbWVzKGFjdGl2ZV9pbmRlbnQpDQojcm93bmFtZXMoYWN0aXZlX2luZGVudCkgPSBOVUxMDQojd3JpdGVfZGVsaW0oeD1hY3RpdmVfaW5kZW50LA0KIyAgICAgICAgICAgIGZpbGU9IkM6L1VzZXJzL3Njb3R0L0RhdGEvc2NSTkFTZXEvc2hlYS9hY3RpdmVfaWRlbnQuY3N2IiwNCiMgICAgICAgICAgICBkZWxpbT0nLCcpDQpgYGANCg0KIyAzLiBTYXZlIFN1YnNldHMgYXMgU2VwYXJhdGUgU2hlZXRzIGluIGFuIEV4Y2VsIGZpbGUNClRvIHBlcmZvcm0gZGF0YSBpbXB1dGF0aW9uIGFuZCB0byBzYXZlIG9uIG1lbW9yeSwgbGV0J3Mgc2VwYXJhdGUgdGhlIGRhdGEgYnkgY2VsbCB0eXBlcy4NCmBgYHtyfQ0Kcm0obGlzdD1scygpKQ0KDQojIEFDTFgNCiNsb2FkKCJDOi9Vc2Vycy9zY290dC9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5yb2JqIiwgdmVyYm9zZT1UUlVFKQ0KIyBEZWxsDQpsb2FkKCJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvbHVuZy5yb2JqIiwgdmVyYm9zZT1UUlVFKQ0KDQpjZWxsdHlwZS5saXN0ID0gU3BsaXRPYmplY3QobHVuZywgc3BsaXQuYnk9IkNlbGxUeXBlIikNCmBgYA0KDQpgYGB7cn0NCiMgTWFrZSBhIGZ1bmN0aW9uIHRoYXQgbWFwcyBnZW5lcyB1c2luZyB0d28gcmVmZXJlbmNlIGRhdGFiYXNlcw0KY29udmVydE1vdXNlR2VuZUxpc3QgPSBmdW5jdGlvbihnZW5lX29iaiwgZGIxLCBkYjIpew0KICBvcnRob2xvZ3MgPSBnZXRMRFMoYXR0cmlidXRlcz1jKCJtZ2lfc3ltYm9sIiksIGZpbHRlcnM9Im1naV9zeW1ib2wiLCANCiAgICAgICAgICAgICAgICAgICB2YWx1ZXM9cm93bmFtZXMoZ2VuZV9vYmopLCBtYXJ0PWRiMiwgDQogICAgICAgICAgICAgICAgICAgYXR0cmlidXRlc0w9YygiaGduY19zeW1ib2wiLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJlbnRyZXpnZW5lX2lkIiwgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiZW5zZW1ibF9nZW5lX2lkIiksIG1hcnRMPWRiMSwgDQogICAgICAgICAgICAgICAgICAgdW5pcXVlUm93cz1UUlVFKQ0KICBtYXBwZWRfZ2VuZV9vYmogPSBtZXJnZShvcnRob2xvZ3MsIGdlbmVfb2JqLCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgYnkueD0nTUdJLnN5bWJvbCcsIGJ5Lnk9J3Jvdy5uYW1lcycpDQogIHJldHVybihtYXBwZWRfZ2VuZV9vYmopDQp9DQpgYGANCg0KYGBge3J9DQojaW5zdGFsbC5wYWNrYWdlcygnQmlvY01hbmFnZXInKQ0KI0Jpb2NNYW5hZ2VyOjppbnN0YWxsKCJiaW9tYVJ0IiwgDQojICAgICAgICAgICAgICAgICAgICAgZGVwZW5kZW5jaWVzPVRSVUUsDQojICAgICAgICAgICAgICAgICAgICAgSU5TVEFMTF9vcHRzPSctLW5vLWxvY2snKQ0KbGlicmFyeShiaW9tYVJ0KQ0KDQojIENyZWF0ZSB0aGUgbW91c2UgYW5kIGh1bWFuIGRhdGFiYXNlDQpodW1hbiA9IHVzZU1hcnQoImVuc2VtYmwiLCBkYXRhc2V0PSJoc2FwaWVuc19nZW5lX2Vuc2VtYmwiKQ0KbW91c2UgPSB1c2VNYXJ0KCJlbnNlbWJsIiwgZGF0YXNldD0ibW11c2N1bHVzX2dlbmVfZW5zZW1ibCIpDQpgYGANCg0KYGBge3J9DQpkYXRhID0gbGlzdCgpDQpmb3IoaSBpbiAxOmxlbmd0aChjZWxsdHlwZS5saXN0KSl7DQogIHRtcCA9IGRhdGEuZnJhbWUoY2VsbHR5cGUubGlzdFtbaV1dQGFzc2F5cyRSTkFAY291bnRzKQ0KICAjY29sbmFtZXModG1wKSA9IGNlbGx0eXBlLmxpc3RbW2ldXUBtZXRhLmRhdGEkRVZFUllUSElORw0KICB0bXAgPSBjb252ZXJ0TW91c2VHZW5lTGlzdCh0bXAsIGh1bWFuLCBtb3VzZSkNCiAgdG1wJEVuc2VtYmwgPSB0bXAkR2VuZS5zdGFibGUuSUQNCiAgZGF0YVtbaV1dID0gdG1wDQp9DQpgYGANCg0KVGhpcyBjb2RlIHNwZWNpZmljYWxseSBncmFicyB0aGUgbmV1dHJvcGhpbCBkYXRhIGFuZCBzYXZlcyBpdCBhcyBhIC5jc3YgZmlsZS4NCmBgYHtyfQ0KIyBDb3VudCBkYXRhDQpuZXV0ID0gZGF0YS5mcmFtZShjZWxsdHlwZS5saXN0W1sxMF1dQGFzc2F5cyRSTkFAY291bnRzKQ0KbmV1dCA9IGNvbnZlcnRNb3VzZUdlbmVMaXN0KG5ldXQsIGh1bWFuLCBtb3VzZSkNCm5ldXQkRW5zZW1ibCA9IG5ldXQkR2VuZS5zdGFibGUuSUQNCndyaXRlX2RlbGltKG5ldXQsIA0KICAgICAgICAgICAgIkQ6L0RhdGEvc2NSTkFTZXEvc2hlYS9sdW5nLmNzdiIsDQogICAgICAgICAgICBkZWxpbT0nLCcpDQoNCmBgYA0KDQpDcmVhdGUgYSBtYXAgb2YgdGhlIG9yaWdpbmFsIG5hbWVzIGFuZCB0aGUgbmFtZXMgdXNlZCBsYXRlcg0KYGBge3J9DQpvcmlnX2NvbCA9IGNvbG5hbWVzKGNlbGx0eXBlLmxpc3RbWzEwXV1AYXNzYXlzJFJOQUBjb3VudHMpDQpmaW5hbF9jb2wgPSBjZWxsdHlwZS5saXN0W1sxMF1dQG1ldGEuZGF0YSRFVkVSWVRISU5HDQptYXBfb2ZfY29scyA9IGRhdGEuZnJhbWUob3JpZ19jb2wsIGZpbmFsX2NvbCkNCndyaXRlX2RlbGltKG1hcF9vZl9jb2xzLCANCiAgICAgICAgICAgICJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvbmV1dHJvcGhpbF9jb2xtYXAuY3N2IiwNCiAgICAgICAgICAgIGRlbGltPScsJykNCmBgYA0KDQpBbmQgdGhpcyBjb2RlIHNhdmUgYWxsIG9mIHRoZSBkYXRhIGludG8gYW4gZXhjZWwgc2hlZXQuDQpgYGB7cn0NCiNpbnN0YWxsLnBhY2thZ2VzKCd3cml0ZXhsJykNCndyaXRleGw6OndyaXRlX3hsc3goDQogIHg9bGlzdChTdHJvbWFsICAgICAgICAgICA9IGRhdGFbWzFdXSwNCiAgICAgICBBbHZlb2xhck1hY3JvcGhhZ2VzID0gZGF0YVtbMl1dLA0KICAgICAgIE1hY3JvcGhhZ2VzICAgICAgICAgPSBkYXRhW1szXV0sDQogICAgICAgTW9ub2N5dGVzICAgICAgICAgICA9IGRhdGFbWzRdXSwNCiAgICAgICBQbmV1bW9jeXRlcyAgICAgICAgID0gZGF0YVtbNV1dLA0KICAgICAgIEJjZWxscyAgICAgICAgICAgICAgPSBkYXRhW1s2XV0sDQogICAgICAgR3JhbnVsb2N5dGVzICAgICAgICA9IGRhdGFbWzddXSwNCiAgICAgICBUY2VsbHMgICAgICAgICAgICAgID0gZGF0YVtbOF1dLA0KICAgICAgIERlbmRyaXRpYyAgICAgICAgICAgPSBkYXRhW1s5XV0sDQogICAgICAgTmV1dHJvcGhpbHMgICAgICAgICA9IGRhdGFbWzEwXV0sDQogICAgICAgTksgICAgICAgICAgICAgICAgICA9IGRhdGFbWzExXV0sDQogICAgICAgRW5kb3RoZWxpYWwgICAgICAgICA9IGRhdGFbWzEyXV0sDQogICAgICAgSFNDICAgICAgICAgICAgICAgICA9IGRhdGFbWzEzXV0pLA0KICBwYXRoPSJEOi9EYXRhL3NjUk5BU2VxL3NoZWEvY2VsbGRmX2Vuc2VtYmwyLnhsc3giKQ0KI3BhdGg9IkM6L1VzZXJzL3Njb3R0L0RhdGEvc2NSTkFTZXEvc2hlYS9jZWxsZGYueGxzeCIpDQoNCmBgYA==</div>
 
 
 

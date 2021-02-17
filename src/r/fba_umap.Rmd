@@ -19,7 +19,264 @@ We'll read in the metabolic
 rm(list=ls())
 flux_data = read_csv('D:/Analysis/Immune/neutrophil_flux.csv')
 flux_data[, 2:ncol(flux_data)] = abs(flux_data[, 2:ncol(flux_data)])
+```
 
+Now let's perform some mapping to the original ids
+```{r}
+# Read in original data
+ids = read_csv("D:/Data/scRNASeq/shea/neutrophil_colmap.csv")
+
+# Grab day
+ids$day = ids$final_col %>%
+    strsplit(" ") %>%
+    sapply(tail, 1)
+
+# Iteratively add 1 for all duplicates
+ids$day = as.numeric(ids$day)
+ids$day = ids$day * 10
+ids = data.frame(ids)
+ids$new_day = ave(ids$day, ids$final_col, FUN = function(x) x[1] + seq_along(x) - 1)
+ids$new_day = ids$new_day - ids$day
+ids$day = ids$day / 10
+
+# Create the new ID
+ids$final_day = paste(ids$day, ids$new_day, sep='.')
+ids$final_day = as.character(ids$final_day)
+
+# Manually set the first call for a given day
+ids$final_day[1] = '0'
+ids$final_day[2] = '14'
+ids$final_day[19] = '21'
+ids$final_day[77] = '7'
+
+# Create the final output
+ids$final_col = paste("Neutrophils", ids$final_day, sep="  ")
+```
+
+We have to now merge the two maps to get a cohesive map.
+```{r}
+mapped_flux = merge(ids, 
+                    flux_data, 
+                    by.x='final_col', 
+                    by.y='ID')
+```
+
+# Load UMAP Data from gene dimension reduction
+```{r}
+#rm(list=ls())
+# Load the data
+# Dell
+load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# ACLX
+#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+
+# Linux
+#load("~/Data/scRNASeq/shea/lung.Robj")
+#unique(neutrophils@meta.data[["CellType"]])
+```
+
+```{r}
+orig.indent = lung@active.ident
+celltype.list = SplitObject(lung, split.by="CellType")
+
+# Create separate Seurat objects to visualize.
+neutrophils   = celltype.list$Neutrophils
+```
+
+```{r}
+find_subpopulations = function(gene_obj){
+  
+  # Identify variable features
+  gene_obj = FindVariableFeatures(object=gene_obj, 
+                              mean.function=ExpMean,
+                              dispersion.function=LogVMR,
+                              selection.method='vst',
+                              x.low.cutoff=-Inf,
+                              x.high.cutoff=Inf,
+                              y.cutoff=Inf,
+                              nfeatures = 2000)
+  
+  # Log normalize data
+  gene_obj = NormalizeData(gene_obj, 
+                       normalization.method='LogNormalize', 
+                       scale.factor=10000)
+  
+  # Scale data
+  all.genes = rownames(gene_obj)
+  gene_obj = ScaleData(gene_obj, 
+                   features=all.genes)
+  
+  gene_obj = SCTransform(gene_obj)
+
+  
+  # Run PCA
+  gene_obj = RunPCA(object=gene_obj,
+                npcs=50,
+                verbose=FALSE)
+  
+  # Find shortest nearest neighbors and clusters
+  gene_obj = FindNeighbors(gene_obj, 
+                       dims=1:50,
+                       reduction='pca')
+  gene_obj = FindClusters(gene_obj, 
+                      resolution=0.5)
+  gene_obj = RunTSNE(gene_obj,
+                     dims=1:50)
+  # Perform UMAP
+  gene_obj = RunUMAP(gene_obj, 
+                 dims=1:50)
+  
+  return(gene_obj)
+}
+```
+
+```{r}
+neutrophils = find_subpopulations(neutrophils)
+
+# Plot based on predicted clusters
+DimPlot(neutrophils, 
+        reduction="umap",
+        dims=c(1, 2),
+        label=TRUE,
+        repel=TRUE,
+        label.size=4,
+        na.value = "grey50") + 
+        labs(x="UMAP 1", y="UMAP 2", title="Unsupervised learning") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=25),
+              legend.text=element_text(size=20),
+              axis.title.x=element_text(size=20),
+              axis.title.y=element_text(size=20),
+              axis.text.x=element_text(size=20),
+              axis.text.y=element_text(size=20)) +
+        geom_hline(yintercept=0) +
+        geom_vline(xintercept=0)
+```
+
+Now that we know everything is working, let's grab the data.
+
+```{r}
+umap_data = data.frame(neutrophils@reductions$umap@cell.embeddings)
+umap_data$cluster = neutrophils@active.ident
+merged_umap = merge(umap_data, mapped_flux, by.x=0, by.y='orig_col')
+```
+
+# Visualize flux data onto original UMAP embedding
+
+```{r}
+ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=cluster))+ 
+        geom_point() +
+        theme_minimal() +
+        labs(title="Unsupervised clusters")
+```
+```{r}
+p1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_3802))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Glutamate dehydrogenase") + 
+        scale_color_gradient(low="gray", high="blue")
+
+p2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_8486))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Adenosine Phosphorylase") + 
+        scale_color_gradient(low="gray", high="blue")
+
+p3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4012))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Adenosine Kinase") + 
+        scale_color_gradient(low="gray", high="blue")
+
+p4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4085))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Adenine Phosphoribosyltransferase") + 
+        scale_color_gradient(low="gray", high="blue")
+
+scater::multiplot(p1, p2, p3, p4, cols=2)
+```
+
+```{r}
+q1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4418))+ 
+        geom_point() +
+        theme_minimal() +
+        labs(title="Hypoxanthine Phosphoribosyltransferase") + 
+        scale_color_gradient(low="gray", high="red")
+
+q2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4574))+ 
+        geom_point() +
+        theme_minimal() +
+        labs(title="Inosine Phosphorylase") + 
+        scale_color_gradient(low="gray", high="red")
+
+q3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=INSK))+ 
+        geom_point() +
+        theme_minimal() +
+        labs(title="Inosine Kinase") + 
+        scale_color_gradient(low="gray", high="red")
+
+q4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4586))+ 
+        geom_point() +
+        theme_minimal() +
+        labs(title="Isocitrate:NADP+ Oxidoreductase") + 
+        scale_color_gradient(low="gray", high="red")
+
+q5 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4588))+ 
+        geom_point() +
+        theme_minimal() +
+        labs(title="Isocitrate:NAD+ Oxidoreductase") + 
+        scale_color_gradient(low="gray", high="red")
+scater::multiplot(q1, q2, q3, q4, q5, cols=2)
+```
+
+```{r}
+q1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4418))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Hypoxanthine Phosphoribosyltransferase") + 
+        scale_color_gradient(low="gray", high="red")
+
+q2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4574))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Inosine Phosphorylase") + 
+        scale_color_gradient(low="gray", high="red")
+
+q3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=INSK))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Inosine Kinase") + 
+        scale_color_gradient(low="gray", high="red")
+
+p2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_8486))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Adenosine Phosphorylase") + 
+        scale_color_gradient(low="gray", high="blue")
+
+p3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4012))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Adenosine Kinase") + 
+        scale_color_gradient(low="gray", high="blue")
+
+p4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4085))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(title="Adenine Phosphoribosyltransferase") + 
+        scale_color_gradient(low="gray", high="blue")
+```
+
+```{r, fig.width=12, fig.height=6}
+scater::multiplot(q1, p2, q2, p3, q3, p4, cols=3)
+```
+
+
+
+
+```{r}
 # Create identity
 labels = flux_data$ID
 labels = sub("\\.\\d+$", "", labels)
@@ -32,6 +289,15 @@ flux_data = t(flux_data)
 colnames(flux_data) = as.character(flux_data["ID", ])
 flux_data = flux_data[-1, ] 
 ```
+
+
+
+
+
+
+
+
+
 
 Let's create a seurat object
 ```{r}

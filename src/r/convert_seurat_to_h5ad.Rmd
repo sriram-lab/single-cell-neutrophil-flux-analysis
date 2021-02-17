@@ -43,12 +43,12 @@ load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 
 
 # Count data
-data = lung@assays$RNA@counts
-data = as.data.frame(data)
-write_delim(data, 
+neut = subset(lung, subset=CellType=='Neutrophils')
+neut = neut@assays$RNA@counts
+neut = as.data.frame(neut)
+write_delim(neut, 
             "D:/Data/scRNASeq/shea/lung.csv",
             delim=',')
-
 
 
 # Gene Symbol Data
@@ -95,10 +95,10 @@ convertMouseGeneList = function(gene_obj, db1, db2){
 ```
 
 ```{r}
-install.packages('BiocManager')
-BiocManager::install("biomaRt", 
-                     dependencies=TRUE,
-                     INSTALL_opts='--no-lock')
+#install.packages('BiocManager')
+#BiocManager::install("biomaRt", 
+#                     dependencies=TRUE,
+#                     INSTALL_opts='--no-lock')
 library(biomaRt)
 
 # Create the mouse and human database
@@ -110,14 +110,36 @@ mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
 data = list()
 for(i in 1:length(celltype.list)){
   tmp = data.frame(celltype.list[[i]]@assays$RNA@counts)
-  colnames(tmp) = celltype.list[[i]]@meta.data$EVERYTHING
+  #colnames(tmp) = celltype.list[[i]]@meta.data$EVERYTHING
   tmp = convertMouseGeneList(tmp, human, mouse)
   tmp$Ensembl = tmp$Gene.stable.ID
   data[[i]] = tmp
 }
 ```
 
-Save all.
+This code specifically grabs the neutrophil data and saves it as a .csv file.
+```{r}
+# Count data
+neut = data.frame(celltype.list[[10]]@assays$RNA@counts)
+neut = convertMouseGeneList(neut, human, mouse)
+neut$Ensembl = neut$Gene.stable.ID
+write_delim(neut, 
+            "D:/Data/scRNASeq/shea/lung.csv",
+            delim=',')
+
+```
+
+Create a map of the original names and the names used later
+```{r}
+orig_col = colnames(celltype.list[[10]]@assays$RNA@counts)
+final_col = celltype.list[[10]]@meta.data$EVERYTHING
+map_of_cols = data.frame(orig_col, final_col)
+write_delim(map_of_cols, 
+            "D:/Data/scRNASeq/shea/neutrophil_colmap.csv",
+            delim=',')
+```
+
+And this code save all of the data into an excel sheet.
 ```{r}
 #install.packages('writexl')
 writexl::write_xlsx(
@@ -134,7 +156,7 @@ writexl::write_xlsx(
        NK                  = data[[11]],
        Endothelial         = data[[12]],
        HSC                 = data[[13]]),
-  path="D:/Data/scRNASeq/shea/celldf_ensembl.xlsx")
+  path="D:/Data/scRNASeq/shea/celldf_ensembl2.xlsx")
 #path="C:/Users/scott/Data/scRNASeq/shea/celldf.xlsx")
 
 ```

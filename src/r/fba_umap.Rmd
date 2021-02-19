@@ -1,11 +1,16 @@
 ---
 title: "Dimension reduction with Flux Balance Analysis"
-output: html_notebook
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
 ---
 
 # Summary
+This notebook maps the metabolic fluxes from single-cell Flux Balance Analysis onto the dimension reduction embedding.
 
-# 1. Read in libraries
+# 1. Read in libraries we'll use for downstream analyses
 ```{r}
 library(tidyverse)
 library(umap)
@@ -13,8 +18,8 @@ library(Seurat)
 library(writexl)
 ```
 
-# 2. Read in data
-We'll read in the metabolic
+# 2. Read in metabolic flux data and map to original cell ids
+We'll read in the metabolic flux data computed from single-cell Flux Balance Analysis
 ```{r}
 rm(list=ls())
 flux_data = read_csv('D:/Analysis/Immune/neutrophil_flux.csv')
@@ -53,7 +58,7 @@ ids$final_day[77] = '7'
 ids$final_col = paste("Neutrophils", ids$final_day, sep="  ")
 ```
 
-We have to now merge the two maps to get a cohesive map.
+We have to now merge the ids and the metabolic flux data to get a cohesive mapping of cell identifiers to flux.
 ```{r}
 mapped_flux = merge(ids, 
                     flux_data, 
@@ -61,7 +66,8 @@ mapped_flux = merge(ids,
                     by.y='ID')
 ```
 
-# Load UMAP Data from gene dimension reduction
+# Load embeddings
+First, let's load the Seurat object.
 ```{r}
 #rm(list=ls())
 # Load the data
@@ -76,6 +82,7 @@ load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
 #unique(neutrophils@meta.data[["CellType"]])
 ```
 
+We'll now subset the neutrophil data
 ```{r}
 orig.indent = lung@active.ident
 celltype.list = SplitObject(lung, split.by="CellType")
@@ -84,6 +91,7 @@ celltype.list = SplitObject(lung, split.by="CellType")
 neutrophils   = celltype.list$Neutrophils
 ```
 
+This function will find subpopulations within a given cell type. This can be used later.
 ```{r}
 find_subpopulations = function(gene_obj){
   
@@ -131,6 +139,60 @@ find_subpopulations = function(gene_obj){
 }
 ```
 
+## T-SNE
+Now let's visualize the original T-SNE plot. First, we'll cluster the data. 
+```{r}
+neutrophils = FindNeighbors(neutrophils, 
+                       dims=1:50,
+                       reduction='pca')
+neutrophils = FindClusters(neutrophils, 
+                    resolution=0.25)
+```
+
+Then we'll overlay the clusters onto the current tSNE embedding.
+```{r}
+# Plot based on predicted clusters
+DimPlot(neutrophils, 
+        reduction="tsne",
+        dims=c(1, 2),
+        label=TRUE,
+        repel=TRUE,
+        label.size=4,
+        na.value = "grey50") + 
+        labs(x="tSME 1", y="tSNE 2") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=25),
+              legend.text=element_text(size=20),
+              axis.title.x=element_text(size=20),
+              axis.title.y=element_text(size=20),
+              axis.text.x=element_text(size=20),
+              axis.text.y=element_text(size=20)) +
+        geom_hline(yintercept=0) +
+        geom_vline(xintercept=0)
+```
+
+Knowing the current cluster set, we should map the clusters to the flux data. Then we can compute differentially active metabolic flux profiles based on subclusters.
+
+First, we save the tsne clusters.
+```{r}
+tsne_cluster_ident = as.factor(neutrophils@active.ident)
+```
+
+Then, we create the metabolic flux object.
+```{r}
+# Create identity
+mapped_flux = mapped_flux[, -c(final_col, day, new_day, final_day)]
+# Cells need to be cols and rows need to be reactions
+flux_data = t(flux_data)
+
+# Set column names
+#names(flux_data) = lapply(flux_data[1, ], as.character)
+colnames(flux_data) = as.character(flux_data["ID", ])
+flux_data = flux_data[-1, ] 
+```
+
+
+## UMAP
 ```{r}
 neutrophils = find_subpopulations(neutrophils)
 
@@ -276,19 +338,7 @@ scater::multiplot(q1, p2, q2, p3, q3, p4, cols=3)
 
 
 
-```{r}
-# Create identity
-labels = flux_data$ID
-labels = sub("\\.\\d+$", "", labels)
 
-# Cells need to be cols and rows need to be reactions
-flux_data = t(flux_data)
-
-# Set column names
-#names(flux_data) = lapply(flux_data[1, ], as.character)
-colnames(flux_data) = as.character(flux_data["ID", ])
-flux_data = flux_data[-1, ] 
-```
 
 
 
@@ -301,6 +351,8 @@ flux_data = flux_data[-1, ]
 
 Let's create a seurat object
 ```{r}
+rownames(flux_data) = flux_data$ID
+flux_data$ID = NULL
 neutrophil = CreateSeuratObject(counts=flux_data, 
                                 project="neutrophil_flux", 
                                 min.cells=1, 

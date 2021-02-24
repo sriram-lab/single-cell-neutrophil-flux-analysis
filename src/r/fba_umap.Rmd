@@ -259,7 +259,6 @@ pC
 
 Finally, let's assemble the final figure:
 ```{r}
-
 pX = ggarrange(pA, pB, 
                ncol=1, nrow=2, 
                labels=c("A", "B"))
@@ -408,6 +407,21 @@ celltype.list = SplitObject(lung, split.by="CellType")
 
 # Create separate Seurat objects to visualize.
 neutrophils   = celltype.list$Neutrophils
+```
+
+```{r}
+fba = mapped_flux
+
+# Remove unnecessary columns
+fba[, c("final_col", "day", "new_day", "final_day")] = NULL
+
+# Map to original IDs
+rownames(fba) = fba$orig_col
+fba$orig_col = NULL
+
+# Reformat
+fba = t(fba)
+fba = as.sparse(fba)
 ```
 
 Now we need to make sure the expression matrix has the same cells as the fba matrix, and also ensure the `active.ident` and the `Time` datapoints we'll map to.
@@ -569,6 +583,7 @@ pB
 ## F. Overlay metabolic fluxes onto UMAP embedding
 Now that we know everything is working, let's grab the data.
 ```{r}
+neutrophils@active.ident = orig_ident
 umap_data = data.frame(neutrophils@reductions$umap@cell.embeddings)
 umap_data$cluster = neutrophils@active.ident
 merged_umap = merge(umap_data, mapped_flux, by.x=0, by.y='orig_col')

@@ -35,9 +35,13 @@ df$id = row_labels$X1
 ```{r}
 drsa = reshape2::melt(df, id.vars="id")
 rm(list=c('df', 'ids', 'row_labels'))
+
+drsa$id = factor(drsa$id, levels=c("Day 7 / Day 0",
+                                 "Day 14 / Day 7",
+                                 "Day 21 / Day 14"))
 ```
 
-```{r}
+```{r, fig.height=4, fig.width=6}
 # Create histogram of reaction distribution
 p1 = ggplot(drsa, aes(x=value, fill=id)) +
   geom_histogram(bins=100, show.legend=TRUE) +
@@ -65,13 +69,16 @@ p1 = ggplot(drsa, aes(x=value, fill=id)) +
 p1
 ```
 
-```{r}
+```{r, fig.height=2, fig.width=6}
 # Create scatter plot distribution for each fold change + a little jitter
 idx = sample(1:nrow(drsa), replace=FALSE)
 idx = idx[1:2000]
 
-tmp = data.frame(cbind(drsa$value[idx], drsa$id[idx]))
+tmp = data.frame(cbind(drsa$value[idx], as.character(drsa$id[idx])))
 tmp$X1 = as.numeric(tmp$X1)
+tmp$X2 = factor(tmp$X2, levels=c("Day 21 / Day 14",
+                                 "Day 14 / Day 7",
+                                 "Day 7 / Day 0"))
 p2 = ggplot(tmp, aes(x=X1, y=X2, color=X2)) +
      geom_point(show.legend=FALSE) +
      geom_jitter() +
@@ -81,9 +88,8 @@ p2 = ggplot(tmp, aes(x=X1, y=X2, color=X2)) +
      labs(x=expression(Log[2]~(fold~change)~distribution),
           y=element_blank()) + 
      scale_color_manual(values=c("Day 7 / Day 0" = "#63ACBE", 
-                                "Day 14 / Day 7" = "#601A4A", 
-                                "Day 21 / Day 14" = "#EE442F")) + 
-     coord_fixed()
+                                 "Day 14 / Day 7" = "#601A4A", 
+                                 "Day 21 / Day 14" = "#EE442F")) 
 p2
 ```
 

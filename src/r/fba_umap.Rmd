@@ -16,12 +16,94 @@ library(tidyverse)
 library(umap)
 library(Seurat)
 library(writexl)
+library(ggpubr)
+library(gridExtra)
+library(extrafont)
+loadfonts(device="win")
 ```
 
-# 2. Read in metabolic flux data and map to original cell ids
-We'll read in the metabolic flux data computed from single-cell Flux Balance Analysis
+# 2. Load Neutrophil T-SNE embeddings
+First, let's load the Neutrophil Seurat object.
 ```{r}
 rm(list=ls())
+load("D:/Data/scRNASeq/shea/lung.neut.Robj", verbose=TRUE)
+orig_ident = neut@active.ident
+```
+
+## A. Overlay cell subpopulations
+Then we'll overlay the clusters onto the current tSNE embedding.
+Note: The palette used is colorblind friendly. More information can be found here: https://personal.sron.nl/~pault/
+
+```{r, fig.height=6, fig.width=6}
+# Plot based on predicted clusters
+neut@active.ident = orig_ident
+pA = DimPlot(neut, 
+        reduction="tsne",
+        dims=c(1, 2),
+        cols=c("#4477AA", "#228833", "#AA3377", "#EE6677"),
+        label=FALSE,
+        repel=TRUE,
+        label.size=4,
+        pt.size=1.5, 
+        na.value = "grey50") + 
+        labs(title="Neutrophil subpopulations", 
+             x="t-SNE 1", 
+             y="t-SNE 2") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.position=c(0.15, 0.15),
+              legend.box="vertical",
+              legend.margin=margin(),
+              text=element_text(family="sans")) +
+        guides(color=guide_legend(override.aes=list(size=2)))
+
+pA
+```
+## B. Overlay time dimension
+Let's also overlay the time dimension onto the T-SNE plot. It's not very clear that we're able to get separation of time points from T-SNE.
+```{r, fig.height=6, fig.width=6}
+# Plot based on predicted clusters
+neut@active.ident = as.factor(neut@meta.data$Time)
+levels(neut@active.ident)[1] = "Day 0"
+levels(neut@active.ident)[2] = "Day 7"
+levels(neut@active.ident)[3] = "Day 14"
+levels(neut@active.ident)[4] = "Day 21"
+pB = DimPlot(neut, 
+        reduction="tsne",
+        dims=c(1, 2),
+        cols=c("#4477AA", "#228833", "#AA3377", "#EE6677"),
+        label=FALSE,
+        repel=TRUE,
+        label.size=4,
+        pt.size=1.5, 
+        na.value = "grey50") + 
+        labs(title="Neutrophil time-course",
+             x="t-SNE 1", 
+             y="t-SNE 2") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.position=c(0.15, 0.15),
+              legend.box="vertical",
+              legend.margin=margin(),
+              text=element_text(family="sans")) +
+        guides(color=guide_legend(override.aes=list(size=2)))
+
+pB
+```
+
+## C. Overlay metabolic fluxes onto the T-SNE embedding
+We'll read in the metabolic flux data computed from single-cell Flux Balance Analysis
+```{r}
 flux_data = read_csv('D:/Analysis/Immune/neutrophil_flux.csv')
 flux_data[, 2:ncol(flux_data)] = abs(flux_data[, 2:ncol(flux_data)])
 ```
@@ -66,20 +148,257 @@ mapped_flux = merge(ids,
                     by.y='ID')
 ```
 
-# Load embeddings
-First, let's load the Seurat object.
+Let's create this dataframe that maps back to the subclusters
 ```{r}
-#rm(list=ls())
-# Load the data
-# Dell
-load("D:/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+load("D:/Data/scRNASeq/shea/lung.neut.Robj", verbose=TRUE)
+tsne_data = data.frame(neut@reductions$tsne@cell.embeddings)
+tsne_data$cluster = neut@active.ident
+merged_tsne = merge(tsne_data, mapped_flux, by.x=0, by.y='orig_col')
+```
 
-# ACLX
-#load("C:/Users/scott/Data/scRNASeq/shea/lung.robj", verbose=TRUE)
+Let's overlay the metabolic fluxes onto the t-SNE embedding. 
+```{r}
+q1 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4418))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(x="t-SNE 1", 
+             y="t-SNE 2",
+             title="Hypoxanthine Phosphoribosyltransferase", 
+             color="Flux") + 
+        scale_color_gradient(low="gray", high="#CC3311") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 
-# Linux
-#load("~/Data/scRNASeq/shea/lung.Robj")
-#unique(neutrophils@meta.data[["CellType"]])
+q2 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4574))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(x="t-SNE 1", y="t-SNE 2",
+             title="Inosine Phosphorylase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#CC3311") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
+
+q3 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=INSK)) + 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(x="t-SNE 1", y="t-SNE 2",
+             title="Inosine Kinase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#CC3311") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
+
+p2 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_8486))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(x="t-SNE 1", y="t-SNE 2",
+             title="Adenosine Phosphorylase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#004488") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
+
+p3 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4012))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(x="t-SNE 1", y="t-SNE 2",
+             title="Adenosine Kinase", color="Flux") +
+        scale_color_gradient(low="gray", high="#004488")  +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
+
+p4 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4085))+ 
+        geom_point(size=1, alpha=0.5) +
+        theme_minimal() +
+        labs(x="t-SNE 1", y="t-SNE 2",
+             title="Adenine Phosphoribosyltransferase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#004488") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
+```
+
+Create the plot object.
+```{r, fig.width=12, fig.height=6}
+pC = scater::multiplot(q1, p4, q2, p2, q3, p3, cols=3)
+pC
+```
+
+Finally, let's assemble the final figure:
+```{r}
+
+pX = ggarrange(pA, pB, 
+               ncol=1, nrow=2, 
+               labels=c("A", "B"))
+pY = ggarrange(pC, 
+               ncol=1, 
+               labels="C",
+               common.legend=FALSE)
+ggarrange(pX, pY, 
+          nrow=1, ncol=2, 
+          widths=c(6, 24), heights=c(12, 12),
+          common.legend=FALSE)
+```
+
+
+# 3. Get Metabolic Reactions That Are Significantly Upregulated in T-SNE Embedding
+To overlay the metabolic fluxes, we'll perform differential metabolic flux analysis using Seurat.
+
+## A. Format FBA Data
+First, we need to format the data, so that it matches the DGE Matrix, where rows are reactions and columns are cell IDs.
+```{r}
+fba = mapped_flux
+
+# Remove unnecessary columns
+fba[, c("final_col", "day", "new_day", "final_day")] = NULL
+
+# Map to original IDs
+rownames(fba) = fba$orig_col
+fba$orig_col = NULL
+
+# Reformat
+fba = t(fba)
+fba = as.sparse(fba)
+```
+
+Now we need to make sure the expression matrix has the same cells as the fba matrix, and also ensure the `active.ident` and the `Time` datapoints we'll map to.
+```{r}
+# Get names and indices
+intersect_cells = intersect(colnames(neut@assays$RNA@counts), colnames(fba))
+cell_idx = which(colnames(neut@assays$RNA@counts) %in% intersect_cells)
+
+# Reformat data
+neut = subset(neut, cells=intersect_cells)
+```
+
+## B. Create FBA Assay in Seurat Object
+This incorporates FBA into the Seurat Object.
+```{r}
+fba = fba[, intersect_cells]
+neut[["FBA"]] = CreateAssayObject(counts=fba)
+```
+
+## C. Perform data preprocessing for metabolic fluxes
+We'll now perform some data preprocessing steps for the metabolic fluxes. Let's define the function with the following preprocessing steps:
+  1. Log normalization
+  2. Data scaling
+
+```{r}
+preprocess_flux = function(gene_obj, assay){
+  # Log normalize data
+  gene_obj = NormalizeData(gene_obj, 
+                           assay=assay,
+                           normalization.method='LogNormalize', 
+                           scale.factor=10000)
+  
+  # Scale data
+  gene_obj = ScaleData(gene_obj, 
+                       assay=assay)
+  return(gene_obj)
+}
+```
+
+Now let's perform the data preprocessing:
+```{r}
+neut = preprocess_flux(neut, assay="FBA")
+```
+
+## D. Get Metabolic Markers
+We'll get metabolic markers based on subpopulations.
+```{r}
+subpop_reactions = FindAllMarkers(neut,
+                                  assay="FBA",
+                                  only.pos=TRUE,
+                                  min.pct=0.25,
+                                  logfc.threshold=0.25,
+                                  test.use="MAST")
+#write.table(subpop_reactions, "clipboard", sep="\t")
+```
+
+## E. Plot heatmap of differentially active metabolic reactions from T-SNE Neutrophil Subpopulations
+Plot it onto the HeatMap
+```{r}
+reaction_names = c("Adenosine Phosphorylase", # HMR_8486
+                   "Adenosine Kinase", # HMR_4012
+                   "Adenine Phosphoribosyltransferase", # HMR_4085
+                   "Glutamate Dehydrogenase", # HMR_3802
+                   "Inosine Phosphorylase", # HMR_4574
+                   "Inosine Kinase", # (INSK)
+                   "Hypoxanthine Phosphoribosyltransferase", # HMR_4418
+                   "Isocitrate Dehydrogenase (NADPH)",# HMR_4586
+                   "Isocitrate Dehydrogenase (NADH)" # HMR_4588
+                   )
+
+DoHeatmap(object=neut,
+          assay="FBA",
+          slot='data',
+          label=FALSE,
+          draw.lines=TRUE,
+          lines.width=10,
+          features=subpop_reactions$gene,
+          group.colors=c("#4477AA", "#228833", "#AA3377", "#EE6677")) +
+          #scale_fill_gradientn(name="Relative Flux", 
+          #                     colors=c("blue", "gray", "red")) +
+          scale_fill_gradient(name="Metabolic flux",
+                              low='gray', high='#CC3311') +
+          scale_y_discrete(labels=c("HMR-8486"="Adenosine Phosphrylase", 
+                                    "HMR-4012"="Adenosine Kinase",
+                                    "HMR-4085"="Adenine Phosphoribosyltransferase",
+                                    "HMR-3802"="Glutamate Dehydrogenase",
+                                    "HMR-4574"="Inosine Phosphorylase",
+                                    "INSK"="Inosine Kinase",
+                                    "HMR-4418"="Hypoxanthine Phosphoribosyltransferase",
+                                    "HMR-4586"="Isocitrate Dehydrogenase (NADPH)",
+                                    "HMR-4588"="Isocitrate Dehydrogenase (NADH)")) +
+          theme(text=element_text(family='sans', size=16),
+                legend.text=element_text(size=16),
+                axis.title.x=element_text(size=20),
+                axis.title.y=element_text(size=20),
+                axis.text.x=element_text(size=16),
+                axis.text.y=element_text(size=16),
+                legend.title=element_text(size=20)) +
+          labs(colour="Neutrophil subtypes")
+```
+
+# 4. UMAP Analysis 
+
+## A. Load Dataset
+Load original lung object.
+```{r}
+load("D:/Data/scRNASeq/shea/lung.Robj", verbose=TRUE)
 ```
 
 We'll now subset the neutrophil data
@@ -91,7 +410,39 @@ celltype.list = SplitObject(lung, split.by="CellType")
 neutrophils   = celltype.list$Neutrophils
 ```
 
+Now we need to make sure the expression matrix has the same cells as the fba matrix, and also ensure the `active.ident` and the `Time` datapoints we'll map to.
+```{r}
+# Get names and indices
+intersect_cells = intersect(colnames(neutrophils@assays$RNA@counts), colnames(fba))
+cell_idx = which(colnames(neutrophils@assays$RNA@counts) %in% intersect_cells)
+
+# Reformat data
+neutrophils = subset(neutrophils, cells=intersect_cells)
+```
+
+## B. Create FBA Assay in Seurat Object
+This incorporates FBA into the Seurat Object.
+```{r}
+fba = fba[, intersect_cells]
+neutrophils[["FBA"]] = CreateAssayObject(counts=fba)
+```
+
+Then, we create the metabolic flux object.
+```{r}
+# Create identity
+mapped_flux = mapped_flux[, -c(final_col, day, new_day, final_day)]
+# Cells need to be cols and rows need to be reactions
+flux_data = t(flux_data)
+
+# Set column names
+#names(flux_data) = lapply(flux_data[1, ], as.character)
+colnames(flux_data) = as.character(flux_data["ID", ])
+flux_data = flux_data[-1, ] 
+```
+
+## C. Preprocess Neutrophil Dataset
 This function will find subpopulations within a given cell type. This can be used later.
+
 ```{r}
 find_subpopulations = function(gene_obj){
   
@@ -129,8 +480,11 @@ find_subpopulations = function(gene_obj){
                        reduction='pca')
   gene_obj = FindClusters(gene_obj, 
                       resolution=0.5)
+  
+  # Perform T-SNE
   gene_obj = RunTSNE(gene_obj,
                      dims=1:50)
+  
   # Perform UMAP
   gene_obj = RunUMAP(gene_obj, 
                  dims=1:50)
@@ -139,353 +493,266 @@ find_subpopulations = function(gene_obj){
 }
 ```
 
-## T-SNE
-Now let's visualize the original T-SNE plot. First, we'll cluster the data. 
-```{r}
-neutrophils = FindNeighbors(neutrophils, 
-                       dims=1:50,
-                       reduction='pca')
-neutrophils = FindClusters(neutrophils, 
-                    resolution=0.25)
-```
-
-Then we'll overlay the clusters onto the current tSNE embedding.
-```{r}
-# Plot based on predicted clusters
-DimPlot(neutrophils, 
-        reduction="tsne",
-        dims=c(1, 2),
-        label=TRUE,
-        repel=TRUE,
-        label.size=4,
-        na.value = "grey50") + 
-        labs(x="tSME 1", y="tSNE 2") +
-        theme_minimal() +
-        theme(plot.title = element_text(size=25),
-              legend.text=element_text(size=20),
-              axis.title.x=element_text(size=20),
-              axis.title.y=element_text(size=20),
-              axis.text.x=element_text(size=20),
-              axis.text.y=element_text(size=20)) +
-        geom_hline(yintercept=0) +
-        geom_vline(xintercept=0)
-```
-
-Knowing the current cluster set, we should map the clusters to the flux data. Then we can compute differentially active metabolic flux profiles based on subclusters.
-
-First, we save the tsne clusters.
-```{r}
-tsne_cluster_ident = as.factor(neutrophils@active.ident)
-```
-
-Then, we create the metabolic flux object.
-```{r}
-# Create identity
-mapped_flux = mapped_flux[, -c(final_col, day, new_day, final_day)]
-# Cells need to be cols and rows need to be reactions
-flux_data = t(flux_data)
-
-# Set column names
-#names(flux_data) = lapply(flux_data[1, ], as.character)
-colnames(flux_data) = as.character(flux_data["ID", ])
-flux_data = flux_data[-1, ] 
-```
-
-
-## UMAP
+Determine the subpopulations with the neutrophils
 ```{r}
 neutrophils = find_subpopulations(neutrophils)
-
-# Plot based on predicted clusters
-DimPlot(neutrophils, 
-        reduction="umap",
-        dims=c(1, 2),
-        label=TRUE,
-        repel=TRUE,
-        label.size=4,
-        na.value = "grey50") + 
-        labs(x="UMAP 1", y="UMAP 2", title="Unsupervised learning") +
-        theme_minimal() +
-        theme(plot.title = element_text(size=25),
-              legend.text=element_text(size=20),
-              axis.title.x=element_text(size=20),
-              axis.title.y=element_text(size=20),
-              axis.text.x=element_text(size=20),
-              axis.text.y=element_text(size=20)) +
-        geom_hline(yintercept=0) +
-        geom_vline(xintercept=0)
+orig_ident = neutrophils@active.ident
 ```
 
-Now that we know everything is working, let's grab the data.
+## D. Plot the UMAP embedding for subpopulations.
+```{r}
+# Plot based on predicted clusters
+neutrophils@active.ident = orig_ident
+pA = DimPlot(neutrophils, 
+        reduction="umap",
+        dims=c(1, 2),
+        cols=c("#4477AA", "#228833", "#AA3377", "#EE6677"),
+        label=FALSE,
+        repel=TRUE,
+        label.size=4,
+        pt.size=1.5, 
+        na.value = "grey50") + 
+        labs(title="Neutrophil subpopulations", 
+             x="UMAP 1", 
+             y="UMAP 2") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.position=c(0.15, 0.85),
+              legend.box="vertical",
+              legend.margin=margin(),
+              text=element_text(family="sans")) +
+        guides(color=guide_legend(override.aes=list(size=2)))
 
+pA
+```
+
+## E. Plot the UMAP embedding for time-course
+```{r}
+# Plot based on predicted clusters
+neutrophils@active.ident = as.factor(neutrophils@meta.data$Time)
+levels(neutrophils@active.ident)[1] = "Day 0"
+levels(neutrophils@active.ident)[2] = "Day 7"
+levels(neutrophils@active.ident)[3] = "Day 14"
+levels(neutrophils@active.ident)[4] = "Day 21"
+pB = DimPlot(neutrophils, 
+        reduction="umap",
+        dims=c(1, 2),
+        cols=c("#4477AA", "#228833", "#AA3377", "#EE6677"),
+        label=FALSE,
+        repel=TRUE,
+        label.size=4,
+        pt.size=1.5, 
+        na.value = "grey50") + 
+        labs(title="Neutrophil time-course", 
+             x="UMAP 1", 
+             y="UMAP 2") +
+        theme_minimal() +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.position=c(0.15, 0.85),
+              legend.box="vertical",
+              legend.margin=margin(),
+              text=element_text(family="sans")) +
+        guides(color=guide_legend(override.aes=list(size=2)))
+
+pB
+```
+## F. Overlay metabolic fluxes onto UMAP embedding
+Now that we know everything is working, let's grab the data.
 ```{r}
 umap_data = data.frame(neutrophils@reductions$umap@cell.embeddings)
 umap_data$cluster = neutrophils@active.ident
 merged_umap = merge(umap_data, mapped_flux, by.x=0, by.y='orig_col')
 ```
 
-# Visualize flux data onto original UMAP embedding
-
-```{r}
-ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=cluster))+ 
-        geom_point() +
-        theme_minimal() +
-        labs(title="Unsupervised clusters")
-```
-```{r}
-p1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_3802))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(title="Glutamate dehydrogenase") + 
-        scale_color_gradient(low="gray", high="blue")
-
-p2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_8486))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(title="Adenosine Phosphorylase") + 
-        scale_color_gradient(low="gray", high="blue")
-
-p3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4012))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(title="Adenosine Kinase") + 
-        scale_color_gradient(low="gray", high="blue")
-
-p4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4085))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(title="Adenine Phosphoribosyltransferase") + 
-        scale_color_gradient(low="gray", high="blue")
-
-scater::multiplot(p1, p2, p3, p4, cols=2)
-```
-
-```{r}
-q1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4418))+ 
-        geom_point() +
-        theme_minimal() +
-        labs(title="Hypoxanthine Phosphoribosyltransferase") + 
-        scale_color_gradient(low="gray", high="red")
-
-q2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4574))+ 
-        geom_point() +
-        theme_minimal() +
-        labs(title="Inosine Phosphorylase") + 
-        scale_color_gradient(low="gray", high="red")
-
-q3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=INSK))+ 
-        geom_point() +
-        theme_minimal() +
-        labs(title="Inosine Kinase") + 
-        scale_color_gradient(low="gray", high="red")
-
-q4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4586))+ 
-        geom_point() +
-        theme_minimal() +
-        labs(title="Isocitrate:NADP+ Oxidoreductase") + 
-        scale_color_gradient(low="gray", high="red")
-
-q5 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4588))+ 
-        geom_point() +
-        theme_minimal() +
-        labs(title="Isocitrate:NAD+ Oxidoreductase") + 
-        scale_color_gradient(low="gray", high="red")
-scater::multiplot(q1, q2, q3, q4, q5, cols=2)
-```
 
 ```{r}
 q1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4418))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
-        labs(title="Hypoxanthine Phosphoribosyltransferase") + 
-        scale_color_gradient(low="gray", high="red")
+        labs(x="UMAP 1", y="UMAP 2",
+             title="Hypoxanthine Phosphoribosyltransferase", color="Flux")  + 
+        scale_color_gradient(low="gray", high="#CC3311") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 
 q2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4574))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
-        labs(title="Inosine Phosphorylase") + 
-        scale_color_gradient(low="gray", high="red")
+        labs(x="UMAP 1", y="UMAP 2",
+             title="Inosine Phosphorylase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#CC3311") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 
 q3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=INSK))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
-        labs(title="Inosine Kinase") + 
-        scale_color_gradient(low="gray", high="red")
+        labs(x="UMAP 1", y="UMAP 2",
+             title="Inosine Kinase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#CC3311") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 
 p2 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_8486))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
-        labs(title="Adenosine Phosphorylase") + 
-        scale_color_gradient(low="gray", high="blue")
+        labs(x="UMAP 1", y="UMAP 2",
+             title="Adenosine Phosphorylase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#004488") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 
 p3 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4012))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
-        labs(title="Adenosine Kinase") + 
-        scale_color_gradient(low="gray", high="blue")
+        labs(x="UMAP 1", y="UMAP 2",
+             title="Adenosine Kinase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#004488") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 
 p4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4085))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
-        labs(title="Adenine Phosphoribosyltransferase") + 
-        scale_color_gradient(low="gray", high="blue")
+        labs(x="UMAP 1", y="UMAP 2",
+             title="Adenine Phosphoribosyltransferase", color="Flux") + 
+        scale_color_gradient(low="gray", high="#004488") +
+        theme(plot.title = element_text(size=10),
+              legend.text=element_text(size=8),
+              axis.title.x=element_text(size=10),
+              axis.title.y=element_text(size=10),
+              axis.text.x=element_text(size=8),
+              axis.text.y=element_text(size=8),
+              legend.box="vertical",
+              legend.margin=margin())
 ```
 
+Create the plot object.
 ```{r, fig.width=12, fig.height=6}
-scater::multiplot(q1, p2, q2, p3, q3, p4, cols=3)
+pC = scater::multiplot(q1, p4, q2, p2, q3, p3, cols=3)
+pC
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Let's create a seurat object
+Finally, let's assemble the final figure:
 ```{r}
-rownames(flux_data) = flux_data$ID
-flux_data$ID = NULL
-neutrophil = CreateSeuratObject(counts=flux_data, 
-                                project="neutrophil_flux", 
-                                min.cells=1, 
-                                min.features=20)
+
+pX = ggarrange(pA, pB, 
+               ncol=1, nrow=2, 
+               labels=c("A", "B"))
+pY = ggarrange(pC, 
+               ncol=1, 
+               labels="C",
+               common.legend=FALSE)
+ggarrange(pX, pY, 
+          nrow=1, ncol=2, 
+          widths=c(6, 24), heights=c(12, 12),
+          common.legend=FALSE)
 ```
 
+# 5. Get metabolic reactions that are differentially expressed
 
-
-# 3. Data Preprocessing
-Now that we hacked the Seurat object, let's run the usual preprocessing pipeline. Note that SCTransform doesn't work with this data.
-
+## A. Perform Data Preprocessing
+Now let's perform the data preprocessing:
 ```{r}
-neutrophil = FindVariableFeatures(object=neutrophil, 
-                              mean.function=ExpMean,
-                              dispersion.function=LogVMR,
-                              selection.method='vst',
-                              x.low.cutoff=-Inf,
-                              x.high.cutoff=Inf,
-                              y.cutoff=Inf,
-                              nfeatures = 2000)
-
-# Log normalize data
-neutrophil = NormalizeData(neutrophil, 
-                     normalization.method='LogNormalize', 
-                     scale.factor=10000)
-
-all.rxns = rownames(neutrophil)
-neutrophil = ScaleData(neutrophil, 
-                      features=all.rxns)
-
-# Run PCA
-neutrophil = RunPCA(object=neutrophil,
-              npcs=50,
-              verbose=FALSE)
-
-# Find shortest nearest neighbors and clusters
-neutrophil = FindNeighbors(neutrophil, 
-                     dims=1:50,
-                     reduction='pca')
-
-neutrophil = FindClusters(neutrophil, 
-                    resolution=0.5)
-
-# Perform UMAP
-neutrophil = RunUMAP(neutrophil, 
-               dims=1:50)
+neutrophils = preprocess_flux(neutrophils, assay="FBA")
 ```
 
-Create the DimPlot.
-```{r,fig.height=12}
-# Plot based on predicted clusters
-DimPlot(neutrophil, 
-        reduction="umap",
-        dims=c(1, 2),
-        label=TRUE,
-        repel=TRUE,
-        label.size=4,
-        na.value = "grey50") + 
-        labs(x="UMAP 1", y="UMAP 2", title="Neutrophil metabolic flux UMAP") +
-        theme_minimal() +
-        theme(plot.title = element_text(size=25),
-              legend.text=element_text(size=20),
-              axis.title.x=element_text(size=20),
-              axis.title.y=element_text(size=20),
-              axis.text.x=element_text(size=20),
-              axis.text.y=element_text(size=20)) +
-        geom_hline(yintercept=0) +
-        geom_vline(xintercept=0)
-```
-
-Get all metabolic reactions by predicted UMAP clusters
+## B. Get Metabolic Markers
+We'll get metabolic markers based on subpopulations.
 ```{r}
-cluster_markers = FindAllMarkers(neutrophil,
-                         only.pos=TRUE,
-                         min.pct=0.25,
-                         logfc.threshold=0.25,
-                         test.use="MAST",
-                         )
-cluster_markers = cluster_markers[!duplicated(cluster_markers[, "gene"]), ]
+neutrophils@active.ident = orig_ident
+subpop_reactions = FindAllMarkers(neutrophils,
+                                  assay="FBA",
+                                  test.use="MAST")
+tmp = as.data.frame(table(subpop_reactions$gene))
+tmp = tmp[tmp$Freq < 2, ]
 
-#writexl::write_xlsx(cluster_markers, "D:/Analysis/Immune/neutrophil_flux_clusters.xlsx")
+subpop_reactions = merge(subpop_reactions, tmp, by.x='gene', by.y='Var1')
+#write.table(subpop_reactions, "clipboard", sep="\t")
 ```
 
-Change the identity by day
+
+## C. Plot heatmap of differentially active metabolic reactions from UMAP Neutrophil Subpopulations
+Plot it onto the HeatMap
 ```{r}
-# Create color scheme by changing Identifier
-neutrophil.day = SetIdent(obj=neutrophil, 
-                          value=labels)
+reaction_names = c("Adenosine Phosphorylase", # HMR_8486
+                   "Adenosine Kinase", # HMR_4012
+                   "Adenine Phosphoribosyltransferase", # HMR_4085
+                   "Glutamate Dehydrogenase", # HMR_3802
+                   "Inosine Phosphorylase", # HMR_4574
+                   "Inosine Kinase", # (INSK)
+                   "Hypoxanthine Phosphoribosyltransferase", # HMR_4418
+                   "Isocitrate Dehydrogenase (NADPH)",# HMR_4586
+                   "Isocitrate Dehydrogenase (NADH)" # HMR_4588
+                   )
 
-#tmp = AverageExpression(neutrophil.day, features=day_markers$gene)
-levels(neutrophil.day) = c("Neutrophils  0", "Neutrophils  7", "Neutrophils  14", "Neutrophils  21")
-DoHeatmap(object=neutrophil.day,
-          features=day_markers$gene,
-          group.colors=c('#E1E5F2', '#BFDBF7', '#1F7A8C', '#022B3A')) +
-        scale_y_discrete(labels=day_markers$Name) +
-        scale_fill_gradientn(colors=c("blue", "gray", "red"))
-        
-```
-
-# 4. Run UMAP with the flux data
-Rows correspond to different cells in each time point. Columns correspond to different metabolic reactions.
-```{r,fig.height=4}
-day_markers = FindAllMarkers(neutrophil.day,
-                         only.pos=TRUE,
-                         min.pct=0.25,
-                         logfc.threshold=0.25,
-                         test.use="MAST",
-                         )
-
-day_markers$Name = c("Adenosine Phosphorylase", 
-                         "Adenine Phosphoribosyltransferase",
-                         "Adenosine Kinase",
-                         "Glutamate Dehydrogenase",
-                         "Isocitrate:NAD+ Oxidoreductase",
-                         "Isocitrate:NADP+ Oxidoreductase",
-                         "Hypoxanthine Phosphoribosyltransferase",
-                         "Inosine Phosphorylase",
-                         "Inosine Kinase"
-                         )
-
-neutrophil_d0 = day_markers[day_markers$cluster=="Neutrophils  0",]$gene
-FeaturePlot(neutrophil.day, 
-            features=neutrophil_d0[1],
-            label=FALSE,
-            repel=TRUE,
-            label.size=4) + 
-        labs(title="Day 0", x="UMAP 1", y="UMAP 2")
-
-neutrophil_d21 = day_markers[day_markers$cluster=="Neutrophils  21",]$gene
-FeaturePlot(neutrophil.day, 
-            features=neutrophil_d21[1],
-            label=FALSE,
-            repel=TRUE,
-            label.size=4) + 
-        labs(title="Day 21", x="UMAP 1", y="UMAP 2")
+DoHeatmap(object=neutrophils,
+          assay="FBA",
+          slot='data',
+          label=FALSE,
+          draw.lines=TRUE,
+          lines.width=10,
+          features=subpop_reactions$gene,
+          group.colors=c("#4477AA", "#228833", "#AA3377", "#EE6677")) +
+          #scale_fill_gradientn(name="Relative Flux", 
+          #                     colors=c("blue", "gray", "red")) +
+          scale_fill_gradient(name="Metabolic flux",
+                              low='gray', high='#CC3311') +
+          scale_y_discrete(labels=c("HMR-8486"="Adenosine Phosphrylase", 
+                                    "HMR-4012"="Adenosine Kinase",
+                                    "HMR-4085"="Adenine Phosphoribosyltransferase",
+                                    "HMR-3802"="Glutamate Dehydrogenase",
+                                    "HMR-4574"="Inosine Phosphorylase",
+                                    "INSK"="Inosine Kinase",
+                                    "HMR-4418"="Hypoxanthine Phosphoribosyltransferase",
+                                    "HMR-4586"="Isocitrate Dehydrogenase (NADPH)",
+                                    "HMR-4588"="Isocitrate Dehydrogenase (NADH)")) +
+          theme(text=element_text(family='sans', size=16),
+                legend.text=element_text(size=16),
+                axis.title.x=element_text(size=20),
+                axis.title.y=element_text(size=20),
+                axis.text.x=element_text(size=16),
+                axis.text.y=element_text(size=16),
+                legend.title=element_text(size=20)) +
+          labs(colour="Neutrophil subtypes")
 ```

@@ -10,7 +10,7 @@ output:
 # Summary
 This notebook maps the metabolic fluxes from single-cell Flux Balance Analysis onto the dimension reduction embedding.
 
-# 1. Read in libraries we'll use for downstream analyses
+# 1. Load Libraries
 ```{r}
 library(tidyverse)
 library(umap)
@@ -26,7 +26,8 @@ loadfonts(device="win")
 First, let's load the Neutrophil Seurat object.
 ```{r}
 rm(list=ls())
-load("D:/Data/scRNASeq/shea/lung.neut.Robj", verbose=TRUE)
+path_to_neutrophils = "D:/Data/scRNASeq/shea/lung.neut.Robj"
+load(path_to_neutrophils, verbose=TRUE)
 orig_ident = neut@active.ident
 ```
 
@@ -104,20 +105,28 @@ pB
 ## C. Overlay metabolic fluxes onto the T-SNE embedding
 We'll read in the metabolic flux data computed from single-cell Flux Balance Analysis
 ```{r}
-flux_data = read_csv('D:/Analysis/Immune/neutrophil_flux.csv')
+path_to_neutrophil_flux = 'D:/Analysis/Immune/neutrophil_flux.csv'
+flux_data = read_csv(path_to_neutrophil_flux)
 flux_data[, 2:ncol(flux_data)] = abs(flux_data[, 2:ncol(flux_data)])
 ```
 
 Now let's perform some mapping to the original ids
 ```{r}
 # Read in original data
-ids = read_csv("D:/Data/scRNASeq/shea/neutrophil_colmap.csv")
+path_to_old_ids = "D:/Data/scRNASeq/shea/neutrophil_colmap.csv"
+ids = read_csv(path_to_old_ids)
+```
 
+First, we'll grab the day number,
+```{r}
 # Grab day
 ids$day = ids$final_col %>%
     strsplit(" ") %>%
     sapply(tail, 1)
+```
 
+Then add a count to the end of that particular time point. Also, reformat it so that it looks like the old mapping.
+```{r}
 # Iteratively add 1 for all duplicates
 ids$day = as.numeric(ids$day)
 ids$day = ids$day * 10
@@ -125,7 +134,10 @@ ids = data.frame(ids)
 ids$new_day = ave(ids$day, ids$final_col, FUN = function(x) x[1] + seq_along(x) - 1)
 ids$new_day = ids$new_day - ids$day
 ids$day = ids$day / 10
+```
 
+Create the final identifier that perfectly imitates the old identifier, and manually set the first occurrences.
+```{r}
 # Create the new ID
 ids$final_day = paste(ids$day, ids$new_day, sep='.')
 ids$final_day = as.character(ids$final_day)
@@ -156,16 +168,32 @@ tsne_data$cluster = neut@active.ident
 merged_tsne = merge(tsne_data, mapped_flux, by.x=0, by.y='orig_col')
 ```
 
-Let's overlay the metabolic fluxes onto the t-SNE embedding. 
+Let's intialize some variables we need to declare for the visualization
 ```{r}
-q1 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4418))+ 
+reactions_to_visualize = c("HMR_4418", "HMR_4574", "INSK",
+                           "HMR_8486", "HMR_4012", "HMR_4085")
+reaction_names = c("Hypoxanthine Phosphoribosyltransferase", 
+                   "Inosine Phosphorylase", 
+                   "Inosine Kinase",
+                   "Adenosine Phosphorylase",
+                   "Adenosine Kinase",
+                   "Adenine Phosphoribosyltransferase")
+colors = c("#CC3311", "#CC3311", "#CC3311",
+           "#004488", "#004488", "#004488")
+```
+
+Create each T-SNE plot and store them in a list. 
+```{r}
+p = list()
+for(i in 1:length(reactions_to_visualize)){
+  p[[i]] = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=merged_tsne[, reactions_to_visualize[i]])) + 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
         labs(x="t-SNE 1", 
              y="t-SNE 2",
-             title="Hypoxanthine Phosphoribosyltransferase", 
+             title=reaction_names[i], 
              color="Flux") + 
-        scale_color_gradient(low="gray", high="#CC3311") +
+        scale_color_gradient(low="gray", high=colors[i]) +
         theme(plot.title = element_text(size=10),
               legend.text=element_text(size=8),
               axis.title.x=element_text(size=10),
@@ -174,86 +202,12 @@ q1 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4418))+
               axis.text.y=element_text(size=8),
               legend.box="vertical",
               legend.margin=margin())
-
-q2 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4574))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(x="t-SNE 1", y="t-SNE 2",
-             title="Inosine Phosphorylase", color="Flux") + 
-        scale_color_gradient(low="gray", high="#CC3311") +
-        theme(plot.title = element_text(size=10),
-              legend.text=element_text(size=8),
-              axis.title.x=element_text(size=10),
-              axis.title.y=element_text(size=10),
-              axis.text.x=element_text(size=8),
-              axis.text.y=element_text(size=8),
-              legend.box="vertical",
-              legend.margin=margin())
-
-q3 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=INSK)) + 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(x="t-SNE 1", y="t-SNE 2",
-             title="Inosine Kinase", color="Flux") + 
-        scale_color_gradient(low="gray", high="#CC3311") +
-        theme(plot.title = element_text(size=10),
-              legend.text=element_text(size=8),
-              axis.title.x=element_text(size=10),
-              axis.title.y=element_text(size=10),
-              axis.text.x=element_text(size=8),
-              axis.text.y=element_text(size=8),
-              legend.box="vertical",
-              legend.margin=margin())
-
-p2 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_8486))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(x="t-SNE 1", y="t-SNE 2",
-             title="Adenosine Phosphorylase", color="Flux") + 
-        scale_color_gradient(low="gray", high="#004488") +
-        theme(plot.title = element_text(size=10),
-              legend.text=element_text(size=8),
-              axis.title.x=element_text(size=10),
-              axis.title.y=element_text(size=10),
-              axis.text.x=element_text(size=8),
-              axis.text.y=element_text(size=8),
-              legend.box="vertical",
-              legend.margin=margin())
-
-p3 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4012))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(x="t-SNE 1", y="t-SNE 2",
-             title="Adenosine Kinase", color="Flux") +
-        scale_color_gradient(low="gray", high="#004488")  +
-        theme(plot.title = element_text(size=10),
-              legend.text=element_text(size=8),
-              axis.title.x=element_text(size=10),
-              axis.title.y=element_text(size=10),
-              axis.text.x=element_text(size=8),
-              axis.text.y=element_text(size=8),
-              legend.box="vertical",
-              legend.margin=margin())
-
-p4 = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=HMR_4085))+ 
-        geom_point(size=1, alpha=0.5) +
-        theme_minimal() +
-        labs(x="t-SNE 1", y="t-SNE 2",
-             title="Adenine Phosphoribosyltransferase", color="Flux") + 
-        scale_color_gradient(low="gray", high="#004488") +
-        theme(plot.title = element_text(size=10),
-              legend.text=element_text(size=8),
-              axis.title.x=element_text(size=10),
-              axis.title.y=element_text(size=10),
-              axis.text.x=element_text(size=8),
-              axis.text.y=element_text(size=8),
-              legend.box="vertical",
-              legend.margin=margin())
+}
 ```
 
-Create the plot object.
+Create and visualize the final T-SNE flux plot object.
 ```{r, fig.width=12, fig.height=6}
-pC = scater::multiplot(q1, p4, q2, p2, q3, p3, cols=3)
+pC = scater::multiplot(p[[1]], p[[6]], p[[2]], p[[4]], p[[3]], p[[5]], cols=3)
 pC
 ```
 
@@ -390,6 +344,19 @@ DoHeatmap(object=neut,
                 axis.text.y=element_text(size=16),
                 legend.title=element_text(size=20)) +
           labs(colour="Neutrophil subtypes")
+```
+
+## F. Get gene markers for each subpopulation
+This will be used to see if there is correspondance in the UMAP dataset
+```{r}
+subpop_genes_tsne = FindAllMarkers(neut,
+                              assay="RNA",
+                              only.pos=TRUE,
+                              min.pct=0.25,
+                              logfc.threshold=0.25,
+                              test.use="MAST")
+
+tmp = 
 ```
 
 # 4. UMAP Analysis 
@@ -726,7 +693,6 @@ subpop_reactions = merge(subpop_reactions, tmp, by.x='gene', by.y='Var1')
 #write.table(subpop_reactions, "clipboard", sep="\t")
 ```
 
-
 ## C. Plot heatmap of differentially active metabolic reactions from UMAP Neutrophil Subpopulations
 Plot it onto the HeatMap
 ```{r}
@@ -770,4 +736,29 @@ DoHeatmap(object=neutrophils,
                 axis.text.y=element_text(size=16),
                 legend.title=element_text(size=20)) +
           labs(colour="Neutrophil subtypes")
+```
+
+## D. Get gene markers for each subpopulation
+This will be used to see if there is correspondance in the UMAP dataset
+```{r}
+subpop_genes_umap = FindAllMarkers(neutrophils,
+                              assay="RNA",
+                              only.pos=TRUE,
+                              min.pct=0.25,
+                              logfc.threshold=0.25,
+                              test.use="MAST")
+```
+# 6. Merge the T-SNE and UMAP embedding together to see if there is overlap.
+I need to get unique markers for each cluster. This is how I'll do it.
+```{r}
+# Remove all genes that are duplicated in UMAP
+dup_umap = subpop_genes_umap$gene[duplicated(subpop_genes_umap$gene)]
+subpop_genes_umap = subpop_genes_umap[which(rownames(subpop_genes_umap) %in% dup_umap), ]
+
+# Remove all genes that are duplicated in T-SNE 
+dup_tsne = subpop_genes_tsne$gene[duplicated(subpop_genes_tsne$gene)]
+subpop_genes_tsne = subpop_genes_tsne[which(rownames(subpop_genes_tsne) %in% dup_tsne), ]
+
+# Get intersection
+merged_clusters = merge(subpop_genes_tsne, subpop_genes_umap, by='gene')
 ```

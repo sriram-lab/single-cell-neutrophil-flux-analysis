@@ -6,8 +6,7 @@ output: html_notebook
 # Summary
 This notebook makes a reaction activity plot.
 
-# 1. Load libraries
-
+# 1. Load relevant libraries
 ```{r}
 library(ggplot2)
 library(tidyverse)
@@ -15,8 +14,8 @@ library(grid)
 library(gridExtra)
 ```
 
-# 2. Load data
-The data consists of the log2 fold changes for each time transition (day 7/ day 0; day 14/ day7; day 21/ day14).
+# 2. Load datasets
+The data consists of the log2 fold changes for each time transition (day 7/ day 0; day 14/ day7; day 21/ day14) plus their associated reaction identifiers and time transitions.
 ```{r}
 filepath = "D:/Analysis/Immune/neutrophil_foldchange.csv"
 df = read_csv(filepath, col_names=FALSE)
@@ -32,6 +31,9 @@ df$id = row_labels$X1
 ```
 
 # 3. Create histograms
+
+## A. Melt the dataframe
+To create the histograms for each time transition fold change, I need to melt the dataframe and declare their `ids` as a factor. 
 ```{r}
 drsa = reshape2::melt(df, id.vars="id")
 rm(list=c('df', 'ids', 'row_labels'))
@@ -41,6 +43,8 @@ drsa$id = factor(drsa$id, levels=c("Day 7 / Day 0",
                                  "Day 21 / Day 14"))
 ```
 
+## B. visualize the histograms
+The code block below will plot that. I chose a color palette that is color-blind friendly: https://venngage.com/blog/color-blind-friendly-palette/
 ```{r, fig.height=4, fig.width=6}
 # Create histogram of reaction distribution
 p1 = ggplot(drsa, aes(x=value, fill=id)) +
@@ -68,7 +72,11 @@ p1 = ggplot(drsa, aes(x=value, fill=id)) +
                              "Day 21 / Day 14")) 
 p1
 ```
+# 4. Create categorical scatter plots
+To show where each reaction lies in the distribution, I created categorical scatterplots. 
 
+## A. Select a random subset of reactions to plot
+However, the total number of reactions that can be plotted is ~ 5M, which takes up a lot of computation time, and looks horrific as a visualization. So, I sampled 2000 data points.
 ```{r, fig.height=2, fig.width=6}
 # Create scatter plot distribution for each fold change + a little jitter
 idx = sample(1:nrow(drsa), replace=FALSE)
@@ -79,6 +87,11 @@ tmp$X1 = as.numeric(tmp$X1)
 tmp$X2 = factor(tmp$X2, levels=c("Day 21 / Day 14",
                                  "Day 14 / Day 7",
                                  "Day 7 / Day 0"))
+```
+
+## B. Visualize the scatterplots
+This code block creates the scatter plots
+```{r}
 p2 = ggplot(tmp, aes(x=X1, y=X2, color=X2)) +
      geom_point(show.legend=FALSE) +
      geom_jitter() +
@@ -93,12 +106,12 @@ p2 = ggplot(tmp, aes(x=X1, y=X2, color=X2)) +
 p2
 ```
 
+# Conclusions and future directions
+From here, you can copy and paste the plots together to create the full differential reaction activity (DRA) plot.
 
-```{r}
-# Arrange the two plots
-aln_plt = cowplot::align_plots(p1, p2, align="v")
+Some additional improvements could include:
 
-cowplot::plot_grid(aln_plt[[1]], aln_plt[[2]], ncol=1, align='v')
-
-cowplot::plot_grid(p1, p2, ncol=1, align='v')
-```
+  * Automatic alignment of the plots
+  * Increased figure resolution
+  * Output of files
+  

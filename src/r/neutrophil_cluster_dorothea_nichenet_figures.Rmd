@@ -1,0 +1,366 @@
+---
+title: "Untitled"
+author: "Ryan Rebernick"
+date: "3/2/2021"
+output: html_document
+---
+
+# 1. Load packages and data
+```{r, warning=F, message=F}
+
+library('plyr')
+library('dplyr')
+library('magrittr')
+library('data.table')
+
+library(dorothea)
+library(Seurat)
+library(tibble)
+library(pheatmap)
+library(tidyr)
+library(viper)
+library(nichenetr)
+library('tibble')
+library(ComplexHeatmap)
+
+
+load('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/Dorothea/data/lung.neut.Robj')
+
+```
+
+
+# 2. Show existing clustering 
+```{r, warning=F, message=F}
+
+# save subtype of neutrophil
+neut$neutType <- Idents(neut)
+
+# show clustering
+DimPlot(neut, reduction = "tsne")
+
+
+```
+
+# 3. Get TF activity per cluster using Dorothea
+https://saezlab.github.io/dorothea/articles/single_cell_vignette.html
+```{r}
+
+# Regulons for mouse
+dorothea_regulon_mouse <- get(data("dorothea_mm", package = "dorothea"))
+
+# We obtain the regulons based on interactions with confidence level A, B and C
+regulon <- dorothea_regulon_mouse %>%
+    dplyr::filter(confidence %in% c("A","B","C"))
+
+# set identities
+Idents(neut) <- neut$neutType
+
+# We compute Viper Scores 
+neut <- run_viper(neut, regulon,
+                  options = list(method = "scale", minsize = 4, 
+                                 eset.filter = FALSE, cores = 1, 
+                                 verbose = FALSE))
+
+# switch assay to dorothea, scale, run PCA, and find neighbors/clusters
+DefaultAssay(object = neut) <- "dorothea"
+neut <- ScaleData(neut)
+neut <- RunPCA(neut, features = rownames(neut), verbose = FALSE)
+neut <- FindNeighbors(neut, dims = 1:10, verbose = FALSE)
+neut <- FindClusters(neut, resolution = 0.5, verbose = FALSE)
+
+# Run umap
+neut <- RunUMAP(neut, dims = 1:10, umap.method = "uwot", metric = "cosine")
+
+# grab cluster markers
+neut.markers <- FindAllMarkers(neut, only.pos = TRUE, min.pct = 0.25, 
+                               logfc.threshold = 0.25, verbose = FALSE)
+
+
+```
+# 4. Plot heatmap of TF activity by cluster
+## 4A. Prepare dataframe for plotting
+The original documentation doesn't filter for factors expressed which makes zero sense to me. I used a mean expression of 0.5 as a cutoff for 'expressed' factors. This significantly narrowd the number of factors down. From 50 predicted ones, to 13 actually expressed.
+```{r}
+
+# set identity
+Idents(neut) <- neut$neutType
+
+## We transform Viper scores, scaled by seurat, into a data frame to better 
+## handling the results
+viper_scores_df <- GetAssayData(neut, slot = "scale.data", 
+                                    assay = "dorothea") %>%
+  data.frame(check.names = F) %>%
+  t()
+
+## We create a data frame containing the cells and their clusters
+CellsClusters <- data.frame(cell = names(Idents(neut)), 
+                            cell_type = as.character(Idents(neut)),
+                            check.names = F)
+
+## We create a data frame with the Viper score per cell and its clusters
+viper_scores_clusters <- viper_scores_df  %>%
+  data.frame() %>% 
+  rownames_to_column("cell") %>%
+  gather(tf, activity, -cell) %>%
+  inner_join(CellsClusters)
+
+## We summarize the Viper scores by cellpopulation
+summarized_viper_scores <- viper_scores_clusters %>% 
+  dplyr::group_by(tf, cell_type) %>%
+  dplyr::summarise(avg = mean(activity),
+            std = sd(activity))
+
+
+## We select the 50 most variable TFs. (200/4pops)
+highly_variable_tfs <- summarized_viper_scores %>%
+  dplyr::group_by(tf) %>%
+  dplyr::mutate(var = var(avg))  %>%
+  ungroup() %>%
+  top_n(200, var) %>%
+  distinct(tf)
+
+## We prepare the data for the plot
+summarized_viper_scores_df <- summarized_viper_scores %>%
+  semi_join(highly_variable_tfs, by = "tf") %>%
+  dplyr::select(-std) %>%   
+  spread(tf, avg) %>%
+  data.frame(row.names = 1, check.names = FALSE) 
+
+# get highly variable tf mean expression (some factors missing) and compute if TFs expressed (average > 0.5)
+Idents(neut) <- neut$orig.ident
+cluster.averages <- as.data.frame(AverageExpression(neut)[["RNA"]])
+cluster.averages %<>% 
+  mutate(gene = rownames(cluster.averages)) %>%
+  dplyr::filter(gene %in% highly_variable_tfs$tf) %>%
+  mutate(all = as.numeric(all)) %>%
+  select(-gene) %>%
+  mutate(all = ifelse(all >0.5, 1, 0))
+
+# Filter Dorothea TFs for those expressed
+t_summarized_viper_scores_df <- as.data.frame(t(summarized_viper_scores_df))
+expressed <- rownames(cluster.averages)[cluster.averages$all>0]
+t_summarized_viper_scores_df %<>% dplyr::filter(rownames(.) %in% expressed)
+
+
+```
+## 4B.Plot Dorothea TF activities filtered by TF expression
+Used a different heatmap plotting function because the documentation is 1000x better. Long live complexHeatmap
+```{r, fig.height=10}
+
+# color palette
+palette_length = 100
+my_color = colorRampPalette(c("Darkblue", "white","red"))(palette_length)
+
+# create heatmap
+h <- Heatmap(t_summarized_viper_scores_df,
+        show_column_dend = F,
+        show_row_dend = F,
+        col = my_color,
+        width = unit(1, "in"), 
+        height = unit(3, "in"),
+        row_names_gp = gpar(fontsize = 8)
+        ) 
+h
+
+# save to pdf
+pdf('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/dorothea_neutrophils_expressed_TFs.pdf', height = 5.5, width = 2.5)
+h
+dev.off()
+
+```
+
+# 5. Write regulons to xlsx document
+```{r}
+library(xlsx)
+
+Idents(neut) <- neut$neutType
+
+# get expression for all factors
+exp <- as.data.frame(AverageExpression(neut)[["RNA"]])
+# place holder for append
+past1 = F 
+
+for(x in 1:length(expressed)){
+print(expressed[x])  
+  
+# current regulon (TF)
+curReg <- regulon %>%
+  dplyr::filter(tf == expressed[x])
+# expresion of all of the TF targets (regulon)
+curExp <- exp %>%
+  dplyr::filter(rownames(.) %in% curReg$target)
+
+# save to file
+write.xlsx(curExp, file="/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/S1_regulonExpression.xlsx", sheetName=expressed[x], row.names=T, append = past1)
+
+past1=T
+
+}
+
+```
+
+
+# 6. Nichenet comparing pro-tumor neutrophils vs anti-tumor/mature neutrophils/MDSCs
+#### 6A. combine neutrophil subtype data witih whole lung seurat object
+combined with whole lung so can use expression data of other cell types. Ended up specificying that the ligands could come from anywhere. Given that we're studying cancer I think this makes sense as IL1b (the top hit) is known to be secreted by cancer cells and that this influences the microenv. 
+```{r}
+
+# load the additional cells to use for signalling if desired
+load('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/Dorothea/data/lung.Robj')
+
+# Create metadata with either granulocyte subcluster or cellType info
+##all lung cells
+subcluster <- as.data.frame(lung$CellType)
+colnames(subcluster) <- 'value'
+##neutrophil cluster info
+toMerge <- as.data.frame(neut$neutType)
+colnames(toMerge) <- 'value2'
+##merge values
+subcluster <- merge(subcluster, toMerge, all.x = T, by = 0)
+##reformat and rename PRN
+subcluster$value <- as.character(subcluster$value)
+subcluster$value2 <-as.character(subcluster$value2)
+subcluster$value2 <- ifelse(is.na(subcluster$value2), subcluster$value, subcluster$value2)
+rownms <- subcluster$Row.names
+subcluster %<>% dplyr::select(value2)
+rownames(subcluster) <- rownms
+
+# assign to seurat object
+lung$subcluster.celltype <- subcluster
+Idents(lung) <- lung$subcluster.celltype
+
+# add additional metadata fields
+lung$dxHl <- ifelse(grepl('\\.h\\.', lung$sample), 'Hlthy', 'Dx')
+
+
+```
+
+#### 6B. Load data required to run nichenet
+```{r}
+# Ligand target
+ligand_target_matrix = readRDS(url("https://zenodo.org/record/3260758/files/ligand_target_matrix.rds"))
+
+# Ligand receptor
+lr_network = readRDS(url("https://zenodo.org/record/3260758/files/lr_network.rds"))
+
+# weighted integrated network
+weighted_networks = readRDS(url("https://zenodo.org/record/3260758/files/weighted_networks.rds"))
+
+```
+
+#### 6C. Nichenet
+Specifically looking at the pro-tumor neutrophils vs all other neutrophils including MDSCs
+```{r}
+
+# Add metadata field for comparison
+lung$comparison <- ifelse(lung$subcluster.celltype %in% c('anti-tumor neutrophils', 'mature neutrophils', 'MDSCs'), 'anti/mature', lung$subcluster.celltype)
+
+# Run nichnet
+Idents(lung) <- lung$CellType
+nichenet_output = nichenet_seuratobj_aggregate(
+  seurat_obj = lung, 
+  receiver = "Neutrophils", 
+  condition_colname = "comparison", condition_oi = "pro-tumor neutrophils", condition_reference = "anti/mature", 
+  sender = "undefined", 
+  ligand_target_matrix = ligand_target_matrix, lr_network = lr_network, weighted_networks = weighted_networks, organism = "mouse")
+
+```
+
+# 7. Plot targets heatmap from Nichenet
+```{r}
+
+# plot target heatmap
+nichenet_output$ligand_activity_target_heatmap
+pdf('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/nichenet_neutrophilClusters_sophia.pdf', height = 5.5, width = 7)
+nichenet_output$ligand_activity_target_heatmap 
+dev.off()
+
+
+```
+
+# 8. Plot Ligand receptor interactions plot from Nichenet
+```{r}
+
+# Receptor interactions
+nichenet_output$ligand_receptor_heatmap_bonafide
+pdf('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/nichenet_neutrophilClusters_receptors_sophia.pdf', height = 3, width = 3.0)
+nichenet_output$ligand_receptor_heatmap_bonafide 
+dev.off()
+
+```
+
+# 9. Plot expression of ligands across cell types by condition from Nichenet
+```{r}
+
+# plot expression of ligands across celltypes by condition
+DotPlot(lung, features = nichenet_output$top_ligands %>% rev(), split.by = "dxHl", dot.min = .1) + RotatedAxis()
+
+```
+
+# 10. Plot expression of receptors across neutrophil subtypes from nichenet
+```{r}
+
+# plot expression of receptors across neutrophil celltypes by condition
+Idents(neut) <- neut$neutType
+DefaultAssay(object = neut) <- "RNA" #reset cell object from dorothea
+rec <- c('Ifngr1', 'Ifngr2', 'Tnfrsf1a', 'Il6ra', 'Il1r2', 'Il1rap')
+DotPlot(neut, features = rec %>% rev(), group.by = "neutType", dot.min = .1) + RotatedAxis()
+
+
+pdf('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/nichenet_neutrophilClusters_receptorExp_sophia.pdf', height = 2, width = 1.75)
+DotPlot(neut, features = rec %>% rev(), group.by = "neutType", dot.min = .1, cols = "RdBu") + RotatedAxis() + 
+  FontSize(x.text = 8, y.text = 0, y.title = 0, x.title = 0) + NoLegend()
+dev.off()
+
+pdf('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/nichenet_neutrophilClusters_receptorExp_legend_sophia.pdf', height = 4.5, width = 4.5)
+DotPlot(neut, features = rec %>% rev(), group.by = "neutType", dot.min = .1, cols = "RdBu") + RotatedAxis() + 
+  FontSize(x.text = 10, y.text = 0, y.title = 0, x.title = 0)  
+dev.off()
+
+
+```
+
+
+# 11. Plot expression of predicted target genes by cell type from nichenet
+```{r}
+
+# get expression for targets 
+Idents(neut) <- neut$neutType
+targets <- AverageExpression(neut)[["RNA"]]
+targets <- targets[rownames(targets) %in% nichenet_output$top_targets,]
+
+# scale and normalize
+targets = t(scale(t(targets), center =T, scale=T))
+
+# color palette
+palette_length = 100
+my_color = colorRampPalette(c("darkorchid4", "white","orange"))(palette_length)
+
+
+# Plot
+H <- Heatmap(targets,
+        show_column_dend = F,
+        show_row_dend = F,
+        col = my_color,
+        width = unit(1, "in"), 
+        height = unit(2, "in"),
+        row_names_gp = gpar(fontsize = 8)
+        ) 
+H
+
+# save to pdf
+pdf('/nfs/turbo/umms-csriram/scampit/Ryan/Projects/single-cell-neutrophil-flux-analysis/out/nichenet_targetGene_scaled_heatmap.pdf', height = 4, width = 2.5)
+H
+dev.off()
+
+
+```
+
+
+
+
+
+
+
+
+

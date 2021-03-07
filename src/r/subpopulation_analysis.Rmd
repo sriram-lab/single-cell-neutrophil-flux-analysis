@@ -112,7 +112,7 @@ find_subpopulations = function(gene_obj){
   
   # Run PCA
   gene_obj = RunPCA(object=gene_obj,
-                npcs=50,
+                #npcs=50,
                 verbose=FALSE)
   
   # Find shortest nearest neighbors and clusters
@@ -153,6 +153,8 @@ DimPlot(neutrophils,
               axis.text.y=element_text(size=20)) +
         geom_hline(yintercept=0) +
         geom_vline(xintercept=0)
+
+save(neutrophils, file='D:/Data/scRNASeq/shea/neut_SEC.robj')
 ```
 
 We should also report the biomarkers.

@@ -1,0 +1,219 @@
+---
+title: "Convert Seurat to Python Object"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
+---
+
+# Summary
+I'm trying to use `phateR`, but keep on running into errors when transforming the data. So, I want to see if the Python package for PHATE is more developed than the R package. To do that, I need to convert the Seurat object to .h5ad.
+
+# 1. Load Libraries
+```{r, results='hide'}
+rm(list=ls())
+library(Seurat)
+library(ggplot2)
+library(scater)
+library(tidyverse)
+library(biomaRt)
+library(writexl)
+
+#install.packages("devtools")
+#devtools::install_github(repo="hhoeflin/hdf5r")
+#devtools::install_github(repo="mojaveazure/loomR", 
+#                         ref="develop")
+#library(loomR)
+```
+
+# 2. Save Entire Data As loom File
+This code block saves an Robj as a loom file.
+```{r, results='hide'}
+rm(list=ls())
+
+# Change these variable paths custom to your directory structure.
+#robj_path = "C:/Users/scott/Data/scRNASeq/shea/lung.robj"
+#save_path = "C:/Users/scott/Data/scRNASeq/shea/lung.loom"
+
+robj_path = "D:/Data/scRNASeq/shea/lung.robj"
+save_path = "D:/Data/scRNASeq/shea/lung.loom"
+
+# Load the R object and save it as a loom file.
+load(robj_path, verbose=TRUE)
+#lung.loom = Seurat::as.loom(lung,filename=save_path)
+```
+
+# 2. Save Entire Dataset as .csv Files
+This code block saves the count data, the gene symbols, and the cell type as several csv files.
+```{r, results='hide'}
+rm(list=ls())
+
+# Change these variable paths custom to your directory structure.
+# robj_path = "C:/Users/scott/Data/scRNASeq/shea/lung.robj"
+# count_savepath = "C:/Users/scott/Data/scRNASeq/shea/symbol.csv"
+# symbol_savepath = "C:/Users/scott/Data/scRNASeq/shea/symbol.csv"
+# ident_savepath = "C:/Users/scott/Data/scRNASeq/shea/active_ident.csv"
+robj_path = "D:/Data/scRNASeq/shea/lung.robj"
+count_savepath = "D:/Data/scRNASeq/shea/lung.csv"
+symbol_savepath = "D:/Data/scRNASeq/shea/symbol.csv"
+ident_savepath = "D:/Data/scRNASeq/shea/active_ident.csv"
+
+# Load the R object
+load(robj_path, verbose=TRUE)
+```
+
+Now write the counts dataset to csv file.
+```{r, results='hide'}
+# Get the count data and write to csv
+neut = subset(lung, subset=CellType=='Neutrophils')
+neut = neut@assays$RNA@counts
+neut = as.data.frame(neut)
+
+# Save count data
+#write_delim(neut, 
+#            count_savepath,
+#            delim=',')
+```
+
+Repeat for gene symbol and cell identifiers
+```{r, results='hide'}
+# Gene Symbol Data
+MGI.Symbol = as.data.frame(rownames(data))
+
+# Save gene symbol data
+#write_delim(x=MGI.Symbol, 
+#            file=symbol_savepath,
+#            delim=",")
+
+# Cell identification data
+active_indent = as.data.frame(lung@active.ident)
+active_indent$true_ident = rownames(active_indent)
+rownames(active_indent) = NULL
+
+# Save the cell identification data
+#write_delim(x=active_indent,
+#            file=ident_savepath,
+#            delim=',')
+```
+
+# 3. Save Subsets as Separate Sheets in an Excel file
+To perform data imputation and to save on memory, let's separate the data by cell types.
+```{r, results='hide'}
+rm(list=ls())
+
+# Change these variable paths custom to your directory structure.
+# robj_path = "C:/Users/scott/Data/scRNASeq/shea/lung.robj"
+# count_savepath = "C:/Users/scott/Data/scRNASeq/shea/symbol.csv"
+# symbol_savepath = "C:/Users/scott/Data/scRNASeq/shea/symbol.csv"
+# ident_savepath = "C:/Users/scott/Data/scRNASeq/shea/active_ident.csv"
+robj_path = "D:/Data/scRNASeq/shea/lung.robj"
+count_savepath = "D:/Data/scRNASeq/shea/lung.csv"
+symbol_savepath = "D:/Data/scRNASeq/shea/symbol.csv"
+ident_savepath = "D:/Data/scRNASeq/shea/active_ident.csv"
+
+# Load the R object
+load(robj_path, verbose=TRUE)
+celltype.list = SplitObject(lung, split.by="CellType")
+```
+
+This is the function that maps genes between two different organisms.
+```{r, results='hide'}
+# Make a function that maps genes using two reference databases
+convertGeneList = function(gene_obj, db1, db2){
+  # convertGeneList converts MGI symbols to human identifiers.
+  # INPUTS:
+  #   * gene_obj: a Seurat object
+  #   * db1: A biomart database. This function is specific to the mouse database.
+  #   * db2: A biomart database. This function is specific to the human database.
+  # OUTPUT:
+  #   * mapped_gene_obj: A dataframe with the mapped gene object.   
+  orthologs = getLDS(attributes=c("mgi_symbol"), 
+                     filters="mgi_symbol", 
+                     values=rownames(gene_obj), 
+                     mart=db2, 
+                     attributesL=c("hgnc_symbol", 
+                                   "entrezgene_id", 
+                                   "ensembl_gene_id"), 
+                     martL=db1, 
+                     uniqueRows=TRUE)
+  
+  mapped_gene_obj = merge(orthologs, 
+                          gene_obj, 
+                          by.x='MGI.symbol', 
+                          by.y='row.names')
+  return(mapped_gene_obj)
+}
+```
+
+This loads two different ensembl databases using biomart.
+```{r, results='hide'}
+# Create the mouse and human database
+human = useMart("ensembl", dataset="hsapiens_gene_ensembl")
+mouse = useMart("ensembl", dataset="mmusculus_gene_ensembl")
+```
+
+Now for each cell type, let's convert the gene symbols.
+```{r, results='hide'}
+data = list()
+for(i in 1:length(celltype.list)){
+  tmp = data.frame(celltype.list[[i]]@assays$RNA@counts)
+  tmp = convertGeneList(tmp, human, mouse)
+  tmp$Ensembl = tmp$Gene.stable.ID
+  data[[i]] = tmp
+}
+```
+
+## Save all mapped cell type data to Excel file
+And this code save all of the data into an excel sheet.
+```{r, results='hide'}
+savepath = "D:/Data/scRNASeq/shea/celldf_ensembl.xlsx"
+#writexl::write_xlsx(
+#  x=list(Stromal           = data[[1]],
+#       AlveolarMacrophages = data[[2]],
+#       Macrophages         = data[[3]],
+#       Monocytes           = data[[4]],
+#       Pneumocytes         = data[[5]],
+#       Bcells              = data[[6]],
+#       Granulocytes        = data[[7]],
+#       Tcells              = data[[8]],
+#       Dendritic           = data[[9]],
+#       Neutrophils         = data[[10]],
+#       NK                  = data[[11]],
+#       Endothelial         = data[[12]],
+#       HSC                 = data[[13]]),
+#  path=savepath)
+```
+
+## Save neutrophil data to csv file
+This code specifically grabs the neutrophil data and saves it as a .csv file.
+```{r, results='hide'}
+# Change to specific save filepath
+neutrophil_path = "D:/Data/scRNASeq/shea/lung.csv"
+
+# Get neutrophil count data
+neut = data.frame(celltype.list[[10]]@assays$RNA@counts)
+neut = convertGeneList(neut, human, mouse)
+neut$Ensembl = neut$Gene.stable.ID
+
+# Write to csv file
+#write_delim(x=neut, 
+#            file=neutrophil_path,
+#            delim=',')
+```
+
+Create a map of the original names and the names used later
+```{r, results='hide'}
+orig_col    = colnames(celltype.list[[10]]@assays$RNA@counts)
+final_col   = celltype.list[[10]]@meta.data$EVERYTHING
+map_of_cols = data.frame(orig_col, final_col)
+
+# Write to file
+savepath = "D:/Data/scRNASeq/shea/neutrophil_colmap.csv"
+#write_delim(map_of_cols, 
+#            file=savepath,
+#            delim=',')
+```
+
+# 4. Conclusions
+These files are used in several downstream analyses for both dimension reduction and Flux Balance Analysis. Good luck!

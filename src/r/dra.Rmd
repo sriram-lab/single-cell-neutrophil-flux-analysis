@@ -1,13 +1,17 @@
 ---
-title: "Reaction Activity Plot"
-output: html_notebook
+title: "Differential Reaction Activity Notebook"
+author: "Scott Campit"
+output: 
+  html_notebook:
+    toc: yes
+    theme: united
 ---
 
 # Summary
 This notebook makes a reaction activity plot.
 
 # 1. Load relevant libraries
-```{r}
+```{r, results='hide'}
 library(ggplot2)
 library(tidyverse)
 library(grid)
@@ -17,7 +21,7 @@ library(scales)
 
 # 2. Load datasets
 The data consists of the log2 fold changes for each time transition (day 7/ day 0; day 14/ day7; day 21/ day14) plus their associated reaction identifiers and time transitions.
-```{r}
+```{r, results='hide'}
 filepath = "D:/Analysis/Immune/neutrophil_foldchange.csv"
 df = read_csv(filepath, col_names=FALSE)
 
@@ -35,7 +39,7 @@ df$id = row_labels$X1
 
 ## A. Melt the dataframe
 To create the histograms for each time transition fold change, I need to melt the dataframe and declare their `ids` as a factor. 
-```{r}
+```{r, results='hide'}
 drsa = reshape2::melt(df, id.vars="id")
 rm(list=c('df', 'ids', 'row_labels'))
 
@@ -46,11 +50,10 @@ drsa$id = factor(drsa$id, levels=c("Day 7 / Day 0",
 
 ## B. visualize the histograms
 The code block below will plot that. I chose a color palette that is color-blind friendly: https://venngage.com/blog/color-blind-friendly-palette/
-```{r, fig.height=4, fig.width=6}
+```{r, fig.height=4, fig.width=6, results='hide'}
 # Create histogram of reaction distribution
 p1 = ggplot(drsa, aes(x=value, fill=id)) +
   geom_histogram(bins=100, show.legend=TRUE) +
-  #scale_y_log10() +
   theme_minimal() +
   xlim(-0.5, 0.5) +
   theme(plot.title = element_text(size=10),
@@ -80,7 +83,7 @@ To show where each reaction lies in the distribution, I created categorical scat
 
 ## A. Select a random subset of reactions to plot
 However, the total number of reactions that can be plotted is ~ 5M, which takes up a lot of computation time, and looks horrific as a visualization. So, I sampled 2000 data points.
-```{r, fig.height=2, fig.width=6}
+```{r, fig.height=2, fig.width=6, results='hide'}
 # Create scatter plot distribution for each fold change + a little jitter
 idx = sample(1:nrow(drsa), replace=FALSE)
 idx = idx[1:2000]
@@ -94,7 +97,7 @@ tmp$X2 = factor(tmp$X2, levels=c("Day 21 / Day 14",
 
 ## B. Visualize the scatterplots
 This code block creates the scatter plots
-```{r}
+```{r, results='hide'}
 p2 = ggplot(tmp, aes(x=X1, y=X2, color=X2)) +
      geom_point(show.legend=FALSE) +
      geom_jitter() +

@@ -30,4 +30,4 @@ Contributions to make this analysis better, more robust, and easier to follow ar
 Distributed under the GNU License. See `LICENSE` for more information.
 
 ## Contact
-For questions regarding the code deposited in this repository, please reach out to Scott Campit scampit [at] umich [dot] edu.
+For questions regarding the code deposited in this repository, please reach out to Scott Campit via email at: scampit [at] umich [dot] edu or via Twitter at @secampit.

@@ -11,7 +11,7 @@ output:
 This notebook maps the metabolic fluxes from single-cell Flux Balance Analysis onto the dimension reduction embedding.
 
 # 1. Load Libraries
-```{r}
+```{r, results='hide'}
 library(tidyverse)
 library(umap)
 library(Seurat)
@@ -24,7 +24,7 @@ loadfonts(device="win")
 
 # 2. Load Neutrophil T-SNE embeddings
 First, let's load the Neutrophil Seurat object.
-```{r}
+```{r, results='hide'}
 rm(list=ls())
 path_to_neutrophils = "D:/Data/scRNASeq/shea/lung.neut.Robj"
 load(path_to_neutrophils, verbose=TRUE)
@@ -35,7 +35,7 @@ orig_ident = neut@active.ident
 Then we'll overlay the clusters onto the current tSNE embedding.
 Note: The palette used is colorblind friendly. More information can be found here: https://personal.sron.nl/~pault/
 
-```{r, fig.height=6, fig.width=6}
+```{r, fig.height=6, fig.width=6, results='hide'}
 # Plot based on predicted clusters
 neut@active.ident = orig_ident
 pA = DimPlot(neut, 
@@ -67,7 +67,7 @@ pA
 ```
 ## B. Overlay time dimension
 Let's also overlay the time dimension onto the T-SNE plot. It's not very clear that we're able to get separation of time points from T-SNE.
-```{r, fig.height=6, fig.width=6}
+```{r, fig.height=6, fig.width=6, results='hide'}
 # Plot based on predicted clusters
 neut@active.ident = as.factor(neut@meta.data$Time)
 levels(neut@active.ident)[1] = "Day 0"
@@ -104,21 +104,21 @@ pB
 
 ## C. Overlay metabolic fluxes onto the T-SNE embedding
 We'll read in the metabolic flux data computed from single-cell Flux Balance Analysis
-```{r}
+```{r, results='hide'}
 path_to_neutrophil_flux = 'D:/Analysis/Immune/neutrophil_flux.csv'
 flux_data = read_csv(path_to_neutrophil_flux)
 flux_data[, 2:ncol(flux_data)] = abs(flux_data[, 2:ncol(flux_data)])
 ```
 
 Now let's perform some mapping to the original ids
-```{r}
+```{r, results='hide'}
 # Read in original data
 path_to_old_ids = "D:/Data/scRNASeq/shea/neutrophil_colmap.csv"
 ids = read_csv(path_to_old_ids)
 ```
 
 First, we'll grab the day number,
-```{r}
+```{r, results='hide'}
 # Grab day
 ids$day = ids$final_col %>%
     strsplit(" ") %>%
@@ -126,7 +126,7 @@ ids$day = ids$final_col %>%
 ```
 
 Then add a count to the end of that particular time point. Also, reformat it so that it looks like the old mapping.
-```{r}
+```{r, results='hide'}
 # Iteratively add 1 for all duplicates
 ids$day = as.numeric(ids$day)
 ids$day = ids$day * 10
@@ -137,7 +137,7 @@ ids$day = ids$day / 10
 ```
 
 Create the final identifier that perfectly imitates the old identifier, and manually set the first occurrences.
-```{r}
+```{r, results='hide'}
 # Create the new ID
 ids$final_day = paste(ids$day, ids$new_day, sep='.')
 ids$final_day = as.character(ids$final_day)
@@ -153,7 +153,7 @@ ids$final_col = paste("Neutrophils", ids$final_day, sep="  ")
 ```
 
 We have to now merge the ids and the metabolic flux data to get a cohesive mapping of cell identifiers to flux.
-```{r}
+```{r, results='hide'}
 mapped_flux = merge(ids, 
                     flux_data, 
                     by.x='final_col', 
@@ -161,15 +161,16 @@ mapped_flux = merge(ids,
 ```
 
 Let's create this dataframe that maps back to the subclusters
-```{r}
-load("D:/Data/scRNASeq/shea/lung.neut.Robj", verbose=TRUE)
+```{r, results='hide'}
+neutrophil_obj = "D:/Data/scRNASeq/shea/lung.neut.Robj"
+load(neutrophil_obj, verbose=TRUE)
 tsne_data = data.frame(neut@reductions$tsne@cell.embeddings)
 tsne_data$cluster = neut@active.ident
 merged_tsne = merge(tsne_data, mapped_flux, by.x=0, by.y='orig_col')
 ```
 
 Let's intialize some variables we need to declare for the visualization
-```{r}
+```{r, results='hide'}
 reactions_to_visualize = c("HMR_4418", "HMR_4574", "INSK",
                            "HMR_8486", "HMR_4012", "HMR_4085")
 reaction_names = c("Hypoxanthine Phosphoribosyltransferase", 
@@ -183,7 +184,7 @@ colors = c("#CC3311", "#CC3311", "#CC3311",
 ```
 
 Create each T-SNE plot and store them in a list. 
-```{r}
+```{r, results='hide'}
 p = list()
 for(i in 1:length(reactions_to_visualize)){
   p[[i]] = ggplot(merged_tsne, aes(x=tSNE_1, y=tSNE_2, color=merged_tsne[, reactions_to_visualize[i]])) + 
@@ -206,13 +207,13 @@ for(i in 1:length(reactions_to_visualize)){
 ```
 
 Create and visualize the final T-SNE flux plot object.
-```{r, fig.width=12, fig.height=6}
+```{r, fig.width=12, fig.height=6, results='hide'}
 pC = scater::multiplot(p[[1]], p[[6]], p[[2]], p[[4]], p[[3]], p[[5]], cols=3)
 pC
 ```
 
 Finally, let's assemble the final figure:
-```{r}
+```{r, results='hide'}
 pX = ggarrange(pA, pB, 
                ncol=1, nrow=2, 
                labels=c("A", "B"))
@@ -226,13 +227,12 @@ ggarrange(pX, pY,
           common.legend=FALSE)
 ```
 
-
 # 3. Get Metabolic Reactions That Are Significantly Upregulated in T-SNE Embedding
 To overlay the metabolic fluxes, we'll perform differential metabolic flux analysis using Seurat.
 
 ## A. Format FBA Data
 First, we need to format the data, so that it matches the DGE Matrix, where rows are reactions and columns are cell IDs.
-```{r}
+```{r, results='hide'}
 fba = mapped_flux
 
 # Remove unnecessary columns
@@ -248,7 +248,7 @@ fba = as.sparse(fba)
 ```
 
 Now we need to make sure the expression matrix has the same cells as the fba matrix, and also ensure the `active.ident` and the `Time` datapoints we'll map to.
-```{r}
+```{r, results='hide'}
 # Get names and indices
 intersect_cells = intersect(colnames(neut@assays$RNA@counts), colnames(fba))
 cell_idx = which(colnames(neut@assays$RNA@counts) %in% intersect_cells)
@@ -259,7 +259,7 @@ neut = subset(neut, cells=intersect_cells)
 
 ## B. Create FBA Assay in Seurat Object
 This incorporates FBA into the Seurat Object.
-```{r}
+```{r, results='hide'}
 fba = fba[, intersect_cells]
 neut[["FBA"]] = CreateAssayObject(counts=fba)
 ```
@@ -269,7 +269,7 @@ We'll now perform some data preprocessing steps for the metabolic fluxes. Let's 
   1. Log normalization
   2. Data scaling
 
-```{r}
+```{r, results='hide'}
 preprocess_flux = function(gene_obj, assay){
   # Log normalize data
   gene_obj = NormalizeData(gene_obj, 
@@ -285,13 +285,13 @@ preprocess_flux = function(gene_obj, assay){
 ```
 
 Now let's perform the data preprocessing:
-```{r}
+```{r, results='hide'}
 neut = preprocess_flux(neut, assay="FBA")
 ```
 
 ## D. Get Metabolic Markers
 We'll get metabolic markers based on subpopulations.
-```{r}
+```{r, results='hide'}
 subpop_reactions = FindAllMarkers(neut,
                                   assay="FBA",
                                   only.pos=TRUE,
@@ -302,8 +302,8 @@ subpop_reactions = FindAllMarkers(neut,
 ```
 
 ## E. Plot heatmap of differentially active metabolic reactions from T-SNE Neutrophil Subpopulations
-Plot it onto the HeatMap
-```{r}
+These are the reaction names we need to feed into the visualization.
+```{r, results='hide'}
 reaction_names = c("Adenosine Phosphorylase", # HMR_8486
                    "Adenosine Kinase", # HMR_4012
                    "Adenine Phosphoribosyltransferase", # HMR_4085
@@ -314,7 +314,10 @@ reaction_names = c("Adenosine Phosphorylase", # HMR_8486
                    "Isocitrate Dehydrogenase (NADPH)",# HMR_4586
                    "Isocitrate Dehydrogenase (NADH)" # HMR_4588
                    )
+```
 
+ it onto the HeatMap
+```{r, results='hide'}
 DoHeatmap(object=neut,
           assay="FBA",
           slot='data',
@@ -323,8 +326,6 @@ DoHeatmap(object=neut,
           lines.width=10,
           features=subpop_reactions$gene,
           group.colors=c("#4477AA", "#228833", "#AA3377", "#EE6677")) +
-          #scale_fill_gradientn(name="Relative Flux", 
-          #                     colors=c("blue", "gray", "red")) +
           scale_fill_gradient(name="Metabolic flux",
                               low='gray', high='#CC3311') +
           scale_y_discrete(labels=c("HMR-8486"="Adenosine Phosphrylase", 
@@ -347,28 +348,27 @@ DoHeatmap(object=neut,
 ```
 
 ## F. Get gene markers for each subpopulation
-This will be used to see if there is correspondance in the UMAP dataset
-```{r}
+This will be used to see if there is correspondence in the UMAP dataset
+```{r, results='hide'}
 subpop_genes_tsne = FindAllMarkers(neut,
                               assay="RNA",
                               only.pos=TRUE,
                               min.pct=0.25,
                               logfc.threshold=0.25,
                               test.use="MAST")
-
-tmp = 
 ```
 
 # 4. UMAP Analysis 
 
 ## A. Load Dataset
 Load original lung object.
-```{r}
-load("D:/Data/scRNASeq/shea/lung.Robj", verbose=TRUE)
+```{r, results='hide'}
+all_lung_data = "D:/Data/scRNASeq/shea/lung.Robj"
+load(all_lung_data, verbose=TRUE)
 ```
 
 We'll now subset the neutrophil data
-```{r}
+```{r, results='hide'}
 orig.indent = lung@active.ident
 celltype.list = SplitObject(lung, split.by="CellType")
 
@@ -376,7 +376,8 @@ celltype.list = SplitObject(lung, split.by="CellType")
 neutrophils   = celltype.list$Neutrophils
 ```
 
-```{r}
+This formats the FBA data.
+```{r, results='hide'}
 fba = mapped_flux
 
 # Remove unnecessary columns
@@ -392,7 +393,7 @@ fba = as.sparse(fba)
 ```
 
 Now we need to make sure the expression matrix has the same cells as the fba matrix, and also ensure the `active.ident` and the `Time` datapoints we'll map to.
-```{r}
+```{r, results='hide'}
 # Get names and indices
 intersect_cells = intersect(colnames(neutrophils@assays$RNA@counts), colnames(fba))
 cell_idx = which(colnames(neutrophils@assays$RNA@counts) %in% intersect_cells)
@@ -403,28 +404,28 @@ neutrophils = subset(neutrophils, cells=intersect_cells)
 
 ## B. Create FBA Assay in Seurat Object
 This incorporates FBA into the Seurat Object.
-```{r}
+```{r, results='hide'}
 fba = fba[, intersect_cells]
 neutrophils[["FBA"]] = CreateAssayObject(counts=fba)
 ```
 
-Then, we create the metabolic flux object.
-```{r}
+Then, we create the metabolic flux object. Run if you haven't already in the T-SNE section.
+```{r, results='hide'}
 # Create identity
-mapped_flux = mapped_flux[, -c(final_col, day, new_day, final_day)]
+#mapped_flux = mapped_flux[, -c(final_col, day, new_day, final_day)]
 # Cells need to be cols and rows need to be reactions
-flux_data = t(flux_data)
+#flux_data = t(flux_data)
 
 # Set column names
 #names(flux_data) = lapply(flux_data[1, ], as.character)
-colnames(flux_data) = as.character(flux_data["ID", ])
-flux_data = flux_data[-1, ] 
+#colnames(flux_data) = as.character(flux_data["ID", ])
+#flux_data = flux_data[-1, ] 
 ```
 
 ## C. Preprocess Neutrophil Dataset
 This function will find subpopulations within a given cell type. This can be used later.
 
-```{r}
+```{r, results='hide'}
 find_subpopulations = function(gene_obj){
   
   # Identify variable features
@@ -475,13 +476,13 @@ find_subpopulations = function(gene_obj){
 ```
 
 Determine the subpopulations with the neutrophils
-```{r}
+```{r, results='hide', include=FALSE}
 neutrophils = find_subpopulations(neutrophils)
 orig_ident = neutrophils@active.ident
 ```
 
 ## D. Plot the UMAP embedding for subpopulations.
-```{r}
+```{r, results='hide'}
 # Plot based on predicted clusters
 neutrophils@active.ident = orig_ident
 pA = DimPlot(neutrophils, 
@@ -513,7 +514,7 @@ pA
 ```
 
 ## E. Plot the UMAP embedding for time-course
-```{r}
+```{r, results='hide'}
 # Plot based on predicted clusters
 neutrophils@active.ident = as.factor(neutrophils@meta.data$Time)
 levels(neutrophils@active.ident)[1] = "Day 0"
@@ -549,7 +550,7 @@ pB
 ```
 ## F. Overlay metabolic fluxes onto UMAP embedding
 Now that we know everything is working, let's grab the data.
-```{r}
+```{r, results='hide'}
 neutrophils@active.ident = orig_ident
 umap_data = data.frame(neutrophils@reductions$umap@cell.embeddings)
 umap_data$cluster = neutrophils@active.ident
@@ -557,7 +558,7 @@ merged_umap = merge(umap_data, mapped_flux, by.x=0, by.y='orig_col')
 ```
 
 
-```{r}
+```{r, results='hide'}
 q1 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4418))+ 
         geom_point(size=1, alpha=0.5) +
         theme_minimal() +
@@ -650,13 +651,13 @@ p4 = ggplot(merged_umap, aes(x=UMAP_1, y=UMAP_2, color=HMR_4085))+
 ```
 
 Create the plot object.
-```{r, fig.width=12, fig.height=6}
+```{r, fig.width=12, fig.height=6, results='hide'}
 pC = scater::multiplot(q1, p4, q2, p2, q3, p3, cols=3)
 pC
 ```
 
 Finally, let's assemble the final figure:
-```{r}
+```{r, results='hide'}
 
 pX = ggarrange(pA, pB, 
                ncol=1, nrow=2, 
@@ -675,13 +676,13 @@ ggarrange(pX, pY,
 
 ## A. Perform Data Preprocessing
 Now let's perform the data preprocessing:
-```{r}
+```{r, results='hide'}
 neutrophils = preprocess_flux(neutrophils, assay="FBA")
 ```
 
 ## B. Get Metabolic Markers
 We'll get metabolic markers based on subpopulations.
-```{r}
+```{r, results='hide'}
 neutrophils@active.ident = orig_ident
 subpop_reactions = FindAllMarkers(neutrophils,
                                   assay="FBA",
@@ -695,7 +696,7 @@ subpop_reactions = merge(subpop_reactions, tmp, by.x='gene', by.y='Var1')
 
 ## C. Plot heatmap of differentially active metabolic reactions from UMAP Neutrophil Subpopulations
 Plot it onto the HeatMap
-```{r}
+```{r, results='hide'}
 reaction_names = c("Adenosine Phosphorylase", # HMR_8486
                    "Adenosine Kinase", # HMR_4012
                    "Adenine Phosphoribosyltransferase", # HMR_4085
@@ -715,8 +716,6 @@ DoHeatmap(object=neutrophils,
           lines.width=10,
           features=subpop_reactions$gene,
           group.colors=c("#4477AA", "#228833", "#AA3377", "#EE6677")) +
-          #scale_fill_gradientn(name="Relative Flux", 
-          #                     colors=c("blue", "gray", "red")) +
           scale_fill_gradient(name="Metabolic flux",
                               low='gray', high='#CC3311') +
           scale_y_discrete(labels=c("HMR-8486"="Adenosine Phosphrylase", 
@@ -740,7 +739,7 @@ DoHeatmap(object=neutrophils,
 
 ## D. Get gene markers for each subpopulation
 This will be used to see if there is correspondance in the UMAP dataset
-```{r}
+```{r, results='hide'}
 subpop_genes_umap = FindAllMarkers(neutrophils,
                               assay="RNA",
                               only.pos=TRUE,
@@ -750,7 +749,7 @@ subpop_genes_umap = FindAllMarkers(neutrophils,
 ```
 # 6. Merge the T-SNE and UMAP embedding together to see if there is overlap.
 I need to get unique markers for each cluster. This is how I'll do it.
-```{r}
+```{r, results='hide'}
 # Remove all genes that are duplicated in UMAP
 dup_umap = subpop_genes_umap$gene[duplicated(subpop_genes_umap$gene)]
 subpop_genes_umap = subpop_genes_umap[which(rownames(subpop_genes_umap) %in% dup_umap), ]

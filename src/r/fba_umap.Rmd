@@ -292,6 +292,7 @@ neut = preprocess_flux(neut, assay="FBA")
 ## D. Get Metabolic Markers
 We'll get metabolic markers based on subpopulations.
 ```{r, results='hide'}
+#neut@active.ident = as.factor(neut@meta.data$Time)
 subpop_reactions = FindAllMarkers(neut,
                                   assay="FBA",
                                   only.pos=TRUE,
@@ -683,7 +684,8 @@ neutrophils = preprocess_flux(neutrophils, assay="FBA")
 ## B. Get Metabolic Markers
 We'll get metabolic markers based on subpopulations.
 ```{r, results='hide'}
-neutrophils@active.ident = orig_ident
+#neutrophils@active.ident = orig_ident
+neutrophils@active.ident = as.factor(neutrophils@meta.data$Time)
 subpop_reactions = FindAllMarkers(neutrophils,
                                   assay="FBA",
                                   test.use="MAST")

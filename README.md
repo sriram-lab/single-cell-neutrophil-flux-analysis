@@ -5,7 +5,7 @@ This repository contains code that utilizes single-cell RNASeq data to generate 
 
 ## Programming languages used in this analysis
   * MATLAB version R2020b Update 4
-  * Python version 3.8.6.
+  * Python version 3.8.6
   * R version 4.03
 
 ## Getting Started
